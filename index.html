@@ -51,7 +51,44 @@
   </div>
 
   <!-- Main Container -->
-  <main class="max-w-4xl mx-auto p-4 space-y-6">
+  <main class="max-w-4xl mx-auto p-4 space-y-5">
+
+    <!-- DAILY SUGGESTION CARD -->
+    <section id="dailySuggestionContainer" class="bg-gradient-to-br from-emerald-50 to-teal-50 border-2 border-emerald-200 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3">
+      <div class="flex items-center justify-between">
+        <span class="inline-flex items-center gap-1.5 bg-emerald-600 text-white text-[11px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wide shadow-sm">
+          <span>✨</span> Daily Suggested Food To Try
+        </span>
+        <span id="suggestionBadge" class="text-[11px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-md"></span>
+      </div>
+
+      <div>
+        <h2 id="suggTitle" class="text-lg sm:text-xl font-extrabold text-slate-900 flex items-center gap-2"></h2>
+        <p id="suggReason" class="text-xs font-medium text-emerald-900/80 mt-0.5"></p>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-white/90 p-3.5 rounded-xl border border-emerald-100 text-xs">
+        <div class="space-y-1">
+          <p class="font-bold text-slate-800 flex items-center gap-1">
+            <span>🥣</span> How to Prepare
+          </p>
+          <p id="suggPrep" class="text-slate-600 leading-relaxed"></p>
+        </div>
+        <div class="space-y-1">
+          <p class="font-bold text-slate-800 flex items-center gap-1">
+            <span>📏</span> How Much to Offer
+          </p>
+          <p id="suggDose" class="text-slate-600 leading-relaxed"></p>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between pt-1">
+        <p class="text-[10px] text-slate-500 italic">💡 Only introduce 1 new major allergen at a time, preferably at morning/lunch.</p>
+        <button onclick="prefillFromSuggestion()" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold px-3.5 py-1.5 rounded-lg transition-colors shadow-sm flex items-center gap-1">
+          <span>📝</span> Log This Food
+        </button>
+      </div>
+    </section>
 
     <!-- Progress Cards -->
     <section class="grid grid-cols-3 gap-3">
@@ -330,7 +367,7 @@
       { id: 92, name: "Polenta", cat: "Grain", allergen: false, allergenName: null, prep6m: "Cooked soft polenta spears (cooled to firm).", prep9m: "Soft bite-sized polenta cubes.", status: "To Try", tries: 0 },
 
       // Dairy & Alternatives (6)
-      { id: 93, name: "Plain Greek Yogurt", cat: "Dairy", allergen: true, allergenName: "Cow's Milk", prep6m: "Full-fat yogurt on pre-loaded spoon.", prep9m: "Self-feeding spoonfuls or yogurt drops.", status: "To Try", tries: 0 },
+      { id: 93, name: "Plain Greek Yogurt", cat: "Dairy", allergen: true, allergenName: "Cow's Milk", prep6m: "Full-fat whole milk yogurt on pre-loaded spoon.", prep9m: "Self-feeding spoonfuls or yogurt drops.", status: "To Try", tries: 0 },
       { id: 94, name: "Ricotta Cheese", cat: "Dairy", allergen: true, allergenName: "Cow's Milk", prep6m: "Smooth whole-milk ricotta spooned or spread.", prep9m: "Dollops on fruit or pasta.", status: "To Try", tries: 0 },
       { id: 95, name: "Cottage Cheese", cat: "Dairy", allergen: true, allergenName: "Cow's Milk", prep6m: "Soft small low-sodium curds on spoon.", prep9m: "Curds for pincer grasp practice.", status: "To Try", tries: 0 },
       { id: 96, name: "Pasteurized Mozzarella", cat: "Dairy", allergen: true, allergenName: "Cow's Milk", prep6m: "Thick strip of fresh soft mozzarella.", prep9m: "Grated or finely diced soft cheese.", status: "To Try", tries: 0 },
@@ -352,21 +389,67 @@
       { id: 110, name: "Extra Virgin Olive Oil", cat: "Fat", allergen: false, allergenName: null, prep6m: "Drizzled over purees or roasted vegetables.", prep9m: "Drizzled on table foods.", status: "To Try", tries: 0 }
     ];
 
-    const top9Allergens = [
-      { name: "Peanut", form: "Smooth peanut butter thinned in warm milk/puree", keyFoods: "Peanut Butter" },
-      { name: "Egg", form: "Fully cooked omelet strips or hard-boiled mash", keyFoods: "Egg Yolk, Scrambled Egg" },
-      { name: "Cow's Milk", form: "Plain whole milk Greek yogurt or ricotta", keyFoods: "Greek Yogurt, Ricotta, Mozzarella" },
-      { name: "Tree Nut", form: "Smooth almond or cashew butter thinned", keyFoods: "Almond, Cashew, Walnut, Pecan" },
-      { name: "Wheat", form: "Toasted bread crust or well-cooked spiral pasta", keyFoods: "Pasta, Toast, Couscous, Farro" },
-      { name: "Soy", form: "Soft steamed firm tofu spears or edamame", keyFoods: "Tofu, Edamame, Soy Yogurt" },
-      { name: "Fish", form: "Flaked wild salmon or cod (check bones)", keyFoods: "Salmon, Cod, Haddock, Sardines" },
-      { name: "Shellfish", form: "Steamed minced shrimp in vegetable puree", keyFoods: "Shrimp, Crab, Lobster, Scallops" },
-      { name: "Sesame", form: "Smooth tahini paste mixed into oatmeal/squash", keyFoods: "Tahini (Sesame Paste)" }
-    ];
+    const allergenProtocols = {
+      "Peanut": {
+        foodName: "Peanut Butter",
+        rationale: "Priority #1 early introduction allergen per pediatric guidelines (LEAP study).",
+        prep: "Never serve thick/chunky peanut butter (choking hazard). Whisk ¼ tsp 100% smooth peanut butter into 1-2 tsp warm breastmilk, formula, or pureed sweet potato until completely smooth and runny.",
+        dose: "Day 1: Give ¼ tsp of the mixture on a spoon tip. Wait 15-20 minutes to observe for any immediate reaction (hives, redness, swelling, vomiting). If clear, offer the remaining 1-2 tsp. Continue offering 1-2x/week."
+      },
+      "Egg": {
+        foodName: "Whole Egg (Scrambled)",
+        rationale: "Priority #2 major allergen. Early egg introduction significantly reduces future egg allergies.",
+        prep: "Scramble 1 egg thoroughly in a lightly greased skillet until firm and completely cooked through (no runny liquid). Cut into soft, wide strips for palmar grasp or finely mince into a puree.",
+        dose: "Day 1: Offer ¼ tsp of well-cooked egg (or a tiny nibble of a strip). Wait 15 minutes to monitor. If no reaction, allow baby to feed on half the scrambled egg. Repeat twice weekly."
+      },
+      "Cow's Milk": {
+        foodName: "Plain Greek Yogurt",
+        rationale: "Introduces dairy protein for oral tolerance (note: fluid cow's milk as a drink is reserved for 12m+).",
+        prep: "Offer full-fat, unsweetened plain whole milk Greek yogurt directly on a pre-loaded soft silicone spoon, or mix with pureed blueberry/banana.",
+        dose: "Start with 1 small teaspoon. Wait 15 minutes. If no hives or contact rash appear, offer 1-2 tablespoons. Offer 2x weekly."
+      },
+      "Wheat": {
+        foodName: "Wheat Toast",
+        rationale: "Common staple allergen that doubles as an ideal teething and palmar grasp practice food.",
+        prep: "Lightly toast 100% whole wheat bread so it is dry and firm (not gummy/doughy, which forms a sticky ball in the mouth). Cut into 2-finger-wide long strips.",
+        dose: "Hand 1 toasted strip for baby to gnaw on and practice mapping their mouth. Watch for hives around the mouth or belly over the next 2 hours."
+      },
+      "Soy": {
+        foodName: "Tofu (Firm)",
+        rationale: "Plant-based protein allergen and excellent soft finger food.",
+        prep: "Slice organic firm tofu into finger-sized rectangular logs (adult pinky finger size). Steam for 2 minutes to warm through and roll in ground flaxseed or hemp hearts for grip.",
+        dose: "Offer 1-2 tofu spears. Let baby explore and self-feed. If well tolerated, add to the regular weekly rotation."
+      },
+      "Tree Nut": {
+        foodName: "Almond Butter",
+        rationale: "Protects against tree nut allergies; should be introduced after peanuts are safely tolerated.",
+        prep: "Thoroughly stir ¼ tsp smooth 100% almond butter into warm baby oatmeal, applesauce, or breastmilk until completely dissolved and fluid.",
+        dose: "Offer ¼ tsp mixed into puree. Wait 15 minutes. If clear, feed the rest of the bowl. (Next week, introduce cashew butter using the same method)."
+      },
+      "Sesame": {
+        foodName: "Tahini",
+        rationale: "Top 9 allergen frequently found in hummus, breads, and Mediterranean/Asian foods.",
+        prep: "Stir ½ tsp smooth tahini (100% roasted sesame paste) into 2 tbsp warm pureed squash, mashed avocado, or oatmeal.",
+        dose: "Offer 1 spoonful, wait 15 minutes, then complete the 2 tbsp serving. Monitor for redness or swelling."
+      },
+      "Fish": {
+        foodName: "Salmon",
+        rationale: "High in brain-building DHA omega-3s and an essential seafood allergen to clear.",
+        prep: "Bake or steam wild salmon until fully cooked and tender. Meticulously inspect and flake with your fingers to ensure ZERO bones are present. Mash lightly with fork.",
+        dose: "Offer 1 teaspoon of flaked salmon on a pre-loaded spoon. Wait 15 minutes, then offer 1-2 tablespoons."
+      },
+      "Shellfish": {
+        foodName: "Shrimp",
+        rationale: "Major seafood allergen that can be safely tested once fish is introduced.",
+        prep: "Steam raw peeled/deveined shrimp until firm and pink. Pulse in a food processor or finely mince into tiny crumbs and stir into avocado or sweet potato mash.",
+        dose: "Offer ½ tsp of the shrimp mash, wait 15 minutes, then serve 1-2 tablespoons."
+      }
+    };
 
     let foods = JSON.parse(localStorage.getItem('fb_foods_v3')) || initialFoods;
     let meals = JSON.parse(localStorage.getItem('fb_meals_v3')) || [];
     let apiUrl = localStorage.getItem('fb_api_url') || '';
+    let currentSuggestion = null;
 
     function init() {
       const now = new Date();
@@ -382,6 +465,7 @@
       renderFoods();
       renderMeals();
       renderAllergens();
+      generateDailySuggestion();
     }
 
     function toggleSettings() {
@@ -435,6 +519,7 @@
         renderFoods();
         renderMeals();
         renderAllergens();
+        generateDailySuggestion();
       } catch (e) {
         setSyncStatus(false, "Sync Error (Offline)");
       }
@@ -479,13 +564,83 @@
 
     function updateStats() {
       const triedCount = foods.filter(f => f.status === 'Tried' || f.status === 'Staple').length;
-      const passedAllergens = top9Allergens.filter(a => {
-        return foods.some(f => f.allergen && f.allergenName === a.name && (f.status === 'Tried' || f.status === 'Staple'));
+      const allergenOrder = ["Peanut", "Egg", "Cow's Milk", "Wheat", "Soy", "Tree Nut", "Sesame", "Fish", "Shellfish"];
+      const passedAllergens = allergenOrder.filter(a => {
+        return foods.some(f => f.allergen && f.allergenName === a && (f.status === 'Tried' || f.status === 'Staple'));
       }).length;
 
       document.getElementById('statFoodsCount').innerText = `${triedCount} / ${foods.length}`;
       document.getElementById('statAllergensCount').innerText = `${passedAllergens} / 9`;
       document.getElementById('statMealsCount').innerText = meals.length;
+    }
+
+    function generateDailySuggestion() {
+      const triedFoods = foods.filter(f => f.status === 'Tried' || f.status === 'Staple');
+      const allergenOrder = ["Peanut", "Egg", "Cow's Milk", "Wheat", "Soy", "Tree Nut", "Sesame", "Fish", "Shellfish"];
+
+      // Case 1: Early starter phase (< 3 single-ingredient foods tried)
+      if (triedFoods.length < 3) {
+        const starterFoods = ["Avocado", "Sweet Potato", "Carrot", "Rolled Oats", "Banana"];
+        const nextStarter = foods.find(f => starterFoods.includes(f.name) && f.status === 'To Try') || foods.find(f => f.status === 'To Try');
+        
+        currentSuggestion = {
+          name: nextStarter.name,
+          badge: "Gentle Starter Food",
+          reason: "Establish tolerance with 3+ gentle single-ingredient base foods before introducing major allergens.",
+          prep: nextStarter.prep6m,
+          dose: "Offer 1-2 soft spears or 2-3 spoonfuls of smooth mash. Feed once daily when baby is alert and happy.",
+          allergen: "None"
+        };
+      } else {
+        // Case 2: Prioritize next untried Top 9 Allergen
+        let nextAllergenName = null;
+        for (let a of allergenOrder) {
+          const isPassed = foods.some(f => f.allergen && f.allergenName === a && (f.status === 'Tried' || f.status === 'Staple'));
+          if (!isPassed) {
+            nextAllergenName = a;
+            break;
+          }
+        }
+
+        if (nextAllergenName && allergenProtocols[nextAllergenName]) {
+          const proto = allergenProtocols[nextAllergenName];
+          currentSuggestion = {
+            name: proto.foodName,
+            badge: `Top 9 Allergen: ${nextAllergenName}`,
+            reason: proto.rationale,
+            prep: proto.prep,
+            dose: proto.dose,
+            allergen: nextAllergenName
+          };
+        } else {
+          // Case 3: All 9 allergens introduced -> Pick next untried nutrient-dense food
+          const nextUntried = foods.find(f => f.status === 'To Try') || foods[0];
+          currentSuggestion = {
+            name: nextUntried.name,
+            badge: `Flavor Expansion (${nextUntried.cat})`,
+            reason: "All Top 9 allergens have been introduced! Continue building variety toward 110 foods.",
+            prep: nextUntried.prep6m,
+            dose: "Offer 2-3 pieces alongside a familiar staple food for exposure.",
+            allergen: nextUntried.allergen ? nextUntried.allergenName : "None"
+          };
+        }
+      }
+
+      // Render to DOM
+      document.getElementById('suggestionBadge').innerText = currentSuggestion.badge;
+      document.getElementById('suggTitle').innerText = currentSuggestion.name;
+      document.getElementById('suggReason').innerText = currentSuggestion.reason;
+      document.getElementById('suggPrep').innerText = currentSuggestion.prep;
+      document.getElementById('suggDose').innerText = currentSuggestion.dose;
+    }
+
+    function prefillFromSuggestion() {
+      if (!currentSuggestion) return;
+      switchTab('logTab');
+      document.getElementById('logFood').value = currentSuggestion.name;
+      document.getElementById('logAllergen').value = currentSuggestion.allergen || 'None';
+      document.getElementById('logNotes').value = `Suggested intro: ${currentSuggestion.badge}`;
+      window.scrollTo({ top: 100, behavior: 'smooth' });
     }
 
     function cycleFoodStatus(id) {
@@ -509,6 +664,7 @@
         updateStats();
         renderFoods();
         renderAllergens();
+        generateDailySuggestion();
         postFoodsToCloud();
       }
     }
@@ -594,6 +750,7 @@
 
       updateStats();
       renderMeals();
+      generateDailySuggestion();
       postMealToCloud(newMeal);
     }
 
@@ -602,6 +759,7 @@
       localStorage.setItem('fb_meals_v3', JSON.stringify(meals));
       updateStats();
       renderMeals();
+      generateDailySuggestion();
     }
 
     function renderMeals() {
@@ -634,8 +792,20 @@
     }
 
     function renderAllergens() {
+      const allergenOrder = [
+        { name: "Peanut", form: "Smooth peanut butter thinned in warm milk/puree", keyFoods: "Peanut Butter" },
+        { name: "Egg", form: "Fully cooked omelet strips or hard-boiled mash", keyFoods: "Egg Yolk, Scrambled Egg" },
+        { name: "Cow's Milk", form: "Plain whole milk Greek yogurt or ricotta", keyFoods: "Greek Yogurt, Ricotta, Mozzarella" },
+        { name: "Tree Nut", form: "Smooth almond or cashew butter thinned", keyFoods: "Almond, Cashew, Walnut, Pecan" },
+        { name: "Wheat", form: "Toasted bread crust or well-cooked spiral pasta", keyFoods: "Pasta, Toast, Couscous, Farro" },
+        { name: "Soy", form: "Soft steamed firm tofu spears or edamame", keyFoods: "Tofu, Edamame, Soy Yogurt" },
+        { name: "Fish", form: "Flaked wild salmon or cod (check bones)", keyFoods: "Salmon, Cod, Haddock, Sardines" },
+        { name: "Shellfish", form: "Steamed minced shrimp in vegetable puree", keyFoods: "Shrimp, Crab, Lobster, Scallops" },
+        { name: "Sesame", form: "Smooth tahini paste mixed into oatmeal/squash", keyFoods: "Tahini (Sesame Paste)" }
+      ];
+
       const container = document.getElementById('allergenList');
-      container.innerHTML = top9Allergens.map(a => {
+      container.innerHTML = allergenOrder.map(a => {
         const matchingFoods = foods.filter(f => f.allergen && f.allergenName === a.name);
         const totalExposures = matchingFoods.reduce((acc, curr) => acc + curr.tries, 0);
         const isPassed = totalExposures > 0;
