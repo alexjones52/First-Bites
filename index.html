@@ -45,7 +45,7 @@
       </div>
       
       <div class="flex items-center gap-1.5 flex-wrap justify-end">
-        <button onclick="toggleModal('aiModal')" class="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-all shadow-sm flex items-center gap-1 animate-pulse">
+        <button onclick="toggleModal('aiModal')" class="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-all shadow-sm flex items-center gap-1">
           ✨ Ask AI
         </button>
         <button onclick="toggleModal('chokeModal')" class="bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold px-2.5 py-1.5 rounded-lg border border-rose-200 transition-colors flex items-center gap-1 shadow-sm">
@@ -71,8 +71,8 @@
         <div class="flex items-center gap-2">
           <span class="text-xl">✨</span>
           <div>
-            <h3 class="text-sm sm:text-base font-bold text-slate-900">FirstBites AI Feeding Assistant</h3>
-            <p class="text-[11px] text-purple-700 font-medium">Powered by baby's real-time feeding history & safety protocols</p>
+            <h3 class="text-sm sm:text-base font-bold text-slate-900">FirstBites AI Assistant</h3>
+            <p class="text-[11px] text-purple-700 font-medium">Personalized with baby's safe foods & clinical guidelines</p>
           </div>
         </div>
         <button onclick="toggleModal('aiModal')" class="text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
@@ -86,13 +86,13 @@
             🍳 Recipe with Safe Foods
           </button>
           <button onclick="runQuickAiPrompt('allergenIntro')" class="bg-amber-50 hover:bg-amber-100 text-amber-800 text-[11px] font-semibold px-2.5 py-1.5 rounded-lg border border-amber-200 transition-colors">
-            🥜 How to Introduce Next Allergen
+            🥜 Next Allergen Steps
           </button>
           <button onclick="runQuickAiPrompt('ironBoost')" class="bg-rose-50 hover:bg-rose-100 text-rose-800 text-[11px] font-semibold px-2.5 py-1.5 rounded-lg border border-rose-200 transition-colors">
-            🥩 Iron Pairing Ideas
+            🥩 Iron & Zinc Combos
           </button>
           <button onclick="runQuickAiPrompt('scheduleCheck')" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[11px] font-semibold px-2.5 py-1.5 rounded-lg border border-emerald-200 transition-colors">
-            ⏰ Today's Meal Flow
+            ⏰ Daily Meal Flow
           </button>
         </div>
       </div>
@@ -101,7 +101,7 @@
       <div id="aiResponseBox" class="flex-1 overflow-y-auto bg-slate-50 rounded-xl p-3.5 border border-slate-200 text-xs space-y-2 text-slate-700 min-h-[160px] leading-relaxed">
         <div class="text-center py-6 text-slate-400 text-xs">
           <span class="text-2xl block mb-1">🥑</span>
-          Ask anything about baby meal prep, texture cuts, allergen dosing, or safe recipe ideas based on what he's already eaten!
+          Ask anything about baby meal prep, texture cuts, allergen dosing, or safe recipe ideas!
         </div>
       </div>
 
@@ -113,16 +113,15 @@
             Ask AI
           </button>
         </div>
-        <p class="text-[10px] text-slate-400 italic">💡 AI answers are tailored with baby's safe foods list, tried allergens, and age stage.</p>
       </form>
     </div>
   </div>
 
-  <!-- Settings Modal (Google Sheets + Optional Gemini API Key) -->
+  <!-- Settings Modal (Google Sheets + Gemini API Key) -->
   <div id="settingsModal" class="hidden fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-lg w-full p-5 border border-slate-200 shadow-xl space-y-4">
       <div class="flex justify-between items-center border-b pb-2">
-        <h3 class="text-sm font-bold text-slate-900">App Settings & Cloud Integrations</h3>
+        <h3 class="text-sm font-bold text-slate-900">App Settings</h3>
         <button onclick="toggleModal('settingsModal')" class="text-slate-400 hover:text-slate-600 font-bold text-sm">✕</button>
       </div>
 
@@ -133,11 +132,11 @@
         <input type="url" id="sheetApiUrl" placeholder="https://script.google.com/macros/s/.../exec" class="w-full text-xs p-2.5 rounded-lg border border-slate-300 outline-none bg-white" />
       </div>
 
-      <!-- Optional Gemini API Key -->
+      <!-- Gemini API Key -->
       <div class="space-y-1.5">
-        <label class="block text-xs font-bold text-slate-800">Google Gemini API Key <span class="text-slate-400 font-normal">(Free, Optional)</span></label>
-        <p class="text-[11px] text-slate-500">Optional: Enter your free Gemini API key to enable instant client-side AI without modifying Apps Script.</p>
-        <input type="password" id="geminiApiKey" placeholder="AIzaSy..." class="w-full text-xs p-2.5 rounded-lg border border-slate-300 outline-none bg-white" />
+        <label class="block text-xs font-bold text-slate-800">Google Gemini API Key</label>
+        <p class="text-[11px] text-slate-500">Paste your key from Google AI Studio to unlock live conversational feeding AI.</p>
+        <input type="text" id="geminiApiKey" placeholder="Paste your API key here..." class="w-full text-xs p-2.5 rounded-lg border border-slate-300 outline-none bg-white" />
       </div>
 
       <div class="flex justify-end gap-2 pt-2">
@@ -948,15 +947,14 @@
       }
     }
 
-    // ================= AI ASSISTANT ENGINE =================
+    // ================= AI ASSISTANT ENGINE (WITH ERROR INSPECTION) =================
     async function queryAI(userPrompt) {
       const box = document.getElementById('aiResponseBox');
       const submitBtn = document.getElementById('aiSubmitBtn');
       submitBtn.disabled = true;
       submitBtn.innerText = "Thinking...";
-      box.innerHTML = `<div class="flex items-center justify-center gap-2 py-8 text-purple-700 font-semibold text-xs"><span class="animate-spin text-lg">⚙️</span> Analyzing baby's safe foods & clinical guidelines...</div>`;
+      box.innerHTML = `<div class="flex items-center justify-center gap-2 py-8 text-purple-700 font-semibold text-xs"><span class="animate-spin text-lg">⚙️</span> Connecting to AI...</div>`;
 
-      // Build context from live state
       const triedFoods = foods.filter(f => f.status === 'Tried' || f.status === 'Staple').map(f => f.name).join(', ');
       const passedAllergens = ["Peanut", "Egg", "Cow's Milk", "Wheat", "Soy", "Tree Nut", "Sesame", "Fish", "Shellfish"].filter(a => foods.some(f => f.allergen && f.allergenName === a && (f.status === 'Tried' || f.status === 'Staple'))).join(', ') || 'None yet';
       const recentMeals = meals.slice(0, 4).map(m => `${m.date}: ${m.food} (${m.reaction})`).join('; ') || 'None';
@@ -971,11 +969,11 @@ User Question: ${userPrompt}
 
 Format your response directly with concise, practical bullet points and bold section headers. No fluff.`;
 
-      try {
-        let aiText = "";
+      let lastError = null;
 
-        // Route 1: Direct Gemini API if key is present
-        if (geminiKey) {
+      // 1. Try Live Google Gemini REST API if key is present
+      if (geminiKey) {
+        try {
           const directRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -983,41 +981,39 @@ Format your response directly with concise, practical bullet points and bold sec
               contents: [{ role: "user", parts: [{ text: fullPrompt }] }]
             })
           });
-          const json = await directRes.json();
-          if (json.candidates && json.candidates[0].content.parts[0].text) {
-            aiText = json.candidates[0].content.parts[0].text;
-          } else {
-            throw new Error(json.error?.message || "Invalid Gemini response");
-          }
-        } 
-        // Route 2: Backend Google Apps Script Webhook proxy
-        else if (apiUrl) {
-          const scriptRes = await fetch(apiUrl, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ action: "askAI", prompt: fullPrompt })
-          });
-          const json = await scriptRes.json();
-          aiText = json.text || (json.candidates && json.candidates[0].content.parts[0].text) || "AI response received.";
-        } else {
-          // Route 3: Guided instant offline knowledge engine if no API connected
-          aiText = generateInstantFeedingGuidance(userPrompt, triedFoods, passedAllergens);
-        }
 
-        // Format and render
-        box.innerHTML = formatAiMarkdown(aiText);
-      } catch (err) {
-        box.innerHTML = `
-          <div class="bg-amber-50 p-3 rounded-lg border border-amber-200 text-amber-900 space-y-1">
-            <p class="font-bold">✨ Instant Feeding Recommendation (Offline Engine):</p>
-            <div>${formatAiMarkdown(generateInstantFeedingGuidance(userPrompt, triedFoods, passedAllergens))}</div>
-            <p class="text-[10px] text-slate-400 mt-2">Note: To connect live Gemini AI, tap Settings ⚙️ and add your free Gemini API key.</p>
-          </div>
-        `;
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.innerText = "Ask AI";
+          const json = await directRes.json();
+          if (json.candidates && json.candidates[0]?.content?.parts?.[0]?.text) {
+            box.innerHTML = formatAiMarkdown(json.candidates[0].content.parts[0].text);
+            submitBtn.disabled = false;
+            submitBtn.innerText = "Ask AI";
+            return;
+          } else {
+            lastError = json.error?.message || `Google returned status ${directRes.status}: ${JSON.stringify(json)}`;
+          }
+        } catch (e) {
+          lastError = e.message;
+        }
       }
+
+      // 2. Fallback to guided rule engine and print Google's exact error if one occurred
+      const offlineGuidance = generateInstantFeedingGuidance(userPrompt, triedFoods, passedAllergens);
+      box.innerHTML = `
+        <div class="space-y-3">
+          ${lastError ? `
+            <div class="bg-rose-50 border border-rose-200 rounded-lg p-2.5 text-[11px] text-rose-800">
+              <strong>Google API Key Note:</strong> ${lastError}
+            </div>
+          ` : ''}
+          <div class="bg-white p-3 rounded-lg border border-purple-100 space-y-1">
+            <p class="font-bold text-purple-900 text-xs">✨ Instant Recommendation (FirstBites Engine):</p>
+            <div class="text-xs text-slate-700 leading-relaxed">${formatAiMarkdown(offlineGuidance)}</div>
+          </div>
+        </div>
+      `;
+
+      submitBtn.disabled = false;
+      submitBtn.innerText = "Ask AI";
     }
 
     function formatAiMarkdown(text) {
@@ -1033,12 +1029,12 @@ Format your response directly with concise, practical bullet points and bold sec
     function generateInstantFeedingGuidance(prompt, tried, allergens) {
       const p = prompt.toLowerCase();
       if (p.includes('recipe')) {
-        return `**Custom Recipe from Baby's Safe Foods:**\n• **Sweet Potato & Avocado Mash:** Mash 2 tbsp steamed sweet potato with ¼ ripe avocado and a pinch of ground flaxseed.\n• **High-Iron Lentil Puree:** Simmer brown lentils until soft, mash with olive oil and serve on pre-loaded silicone spoon.\n• **Safety:** Always check texture squishability between your thumb and index finger.`;
+        return `**Custom Recipe from Baby's Safe Foods:**\n• **Sweet Potato & Avocado Mash:** Mash 2 tbsp steamed sweet potato with ¼ ripe avocado and a pinch of ground flaxseed.\n• **High-Iron Lentil Puree:** Simmer brown lentils until soft, mash with olive oil and serve on pre-loaded silicone spoon.\n• **Safety Check:** Always verify the food squishes easily between your thumb and index finger.`;
       }
       if (p.includes('allergen') || p.includes('peanut') || p.includes('egg')) {
-        return `**Allergen Introduction Protocol:**\n• **Priority:** Only introduce 1 new major allergen at a time at morning/lunch.\n• **15-Min Test Dose:** Offer ¼ tsp mixed into a safe puree (sweet potato or breastmilk). Wait 15 minutes to monitor for hives or swelling before finishing the portion.\n• **Cadence:** Offer cleared allergens 1-2x/week to preserve permanent tolerance.`;
+        return `**Allergen Introduction Protocol:**\n• **Priority:** Introduce only 1 new major allergen at a time during morning or lunch.\n• **15-Min Observation:** Offer ¼ tsp mixed into a safe puree (sweet potato or breastmilk). Wait 15 minutes to monitor for hives or redness before completing the serving.\n• **Maintenance:** Offer cleared allergens 1-2x/week to preserve permanent tolerance.`;
       }
-      return `**Developmental Feeding Recommendation:**\n• **Stage Focus:** Baby's tried base foods include: ${tried || 'Sweet Potato, Avocado, Carrot'}.\n• **Texture Guideline:** Keep finger foods finger-length (6-8m) or ½-inch cubes (9m+) squishable between thumb and forefinger.\n• **Iron Priority:** Pair plant iron (spinach/lentils) with Vitamin C (sweet potato/berries) for 3x absorption.`;
+      return `**Developmental Feeding Guidance:**\n• **Stage Focus:** Baby's tried foods: ${tried || 'Sweet Potato, Avocado, Carrot'}.\n• **Texture Guideline:** Keep finger foods finger-length (6-8m) or ½-inch soft cubes (9m+) squishable between thumb and forefinger.\n• **Iron Priority:** Pair plant iron (spinach/lentils) with Vitamin C (sweet potato/berries) to boost absorption.`;
     }
 
     function handleAiSubmit(e) {
