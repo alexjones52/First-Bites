@@ -5,58 +5,144 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>FirstBites — Infant Solids & Allergen Tracker</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <style>
     body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    @media print {
+      body * { visibility: hidden; }
+      #drSummaryModal, #drSummaryModal * { visibility: visible; }
+      #drSummaryModal { position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 20px; background: white; }
+      .no-print { display: none !important; }
+    }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-900 pb-24">
 
   <!-- Header -->
-  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 px-4 py-3 shadow-sm">
-    <div class="max-w-4xl mx-auto flex items-center justify-between">
-      <div>
-        <h1 class="text-xl font-bold text-emerald-700 flex items-center gap-2">
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 px-3 sm:px-4 py-3 shadow-sm">
+    <div class="max-w-4xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+      <div class="flex items-center justify-between sm:justify-start gap-3">
+        <h1 class="text-lg sm:text-xl font-bold text-emerald-700 flex items-center gap-1.5">
           <span>🥑</span> FirstBites Tracker
         </h1>
-        <div class="flex items-center gap-1.5 mt-0.5">
+        <div class="flex items-center gap-1.5 bg-slate-100 px-2.5 py-1 rounded-full border border-slate-200">
           <span id="syncIndicator" class="w-2 h-2 rounded-full bg-slate-300"></span>
-          <p id="syncStatus" class="text-xs text-slate-500">Local Only (Not Synced)</p>
+          <p id="syncStatus" class="text-[11px] font-medium text-slate-500">Local Only</p>
         </div>
       </div>
-      <div class="flex items-center gap-2">
-        <button onclick="toggleSettings()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-slate-200 transition-colors flex items-center gap-1">
-          ⚙️ Google Sheets
+      
+      <div class="flex items-center gap-1.5 flex-wrap justify-end">
+        <button onclick="toggleModal('chokeModal')" class="bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold px-2.5 py-1.5 rounded-lg border border-rose-200 transition-colors flex items-center gap-1 shadow-sm">
+          🚨 Gag vs Choke
         </button>
-        <button onclick="exportToCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors shadow-sm">
-          Export CSV
+        <button onclick="openDoctorSummary()" class="bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold px-2.5 py-1.5 rounded-lg border border-blue-200 transition-colors flex items-center gap-1 shadow-sm">
+          📋 Dr Summary
+        </button>
+        <button onclick="toggleModal('settingsModal')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-slate-200 transition-colors">
+          ⚙️ Sheets
+        </button>
+        <button onclick="exportToCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg transition-colors shadow-sm">
+          CSV
         </button>
       </div>
     </div>
   </header>
 
   <!-- Google Sheets Sync Modal -->
-  <div id="settingsModal" class="hidden max-w-4xl mx-auto p-4">
-    <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 space-y-3">
+  <div id="settingsModal" class="hidden fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-5 border border-slate-200 shadow-xl space-y-3">
       <div class="flex justify-between items-center">
-        <h3 class="text-xs font-bold text-emerald-900">Google Sheets Webhook Sync</h3>
-        <button onclick="toggleSettings()" class="text-slate-400 hover:text-slate-600 text-xs">✕</button>
+        <h3 class="text-sm font-bold text-slate-900">Google Sheets Webhook Sync</h3>
+        <button onclick="toggleModal('settingsModal')" class="text-slate-400 hover:text-slate-600 font-bold text-sm">✕</button>
       </div>
-      <p class="text-xs text-emerald-800">Paste your Google Apps Script Web App URL below to sync feeding logs and food progression across devices in real time.</p>
+      <p class="text-xs text-slate-600">Paste your Google Apps Script Web App URL below to sync meals and food statuses across both your phones.</p>
       <div class="flex gap-2">
-        <input type="url" id="sheetApiUrl" placeholder="https://script.google.com/macros/s/.../exec" class="w-full text-xs p-2.5 rounded-lg border border-emerald-300 outline-none bg-white" />
+        <input type="url" id="sheetApiUrl" placeholder="https://script.google.com/macros/s/.../exec" class="w-full text-xs p-2.5 rounded-lg border border-slate-300 outline-none bg-white" />
         <button onclick="saveApiUrl()" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold px-4 py-2 rounded-lg whitespace-nowrap">Save & Sync</button>
       </div>
     </div>
   </div>
 
+  <!-- Safety: Gagging vs Choking Modal -->
+  <div id="chokeModal" class="hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-xl w-full p-5 sm:p-6 border border-slate-200 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+          <span>🚨</span> Emergency Safety Cheatsheet
+        </h3>
+        <button onclick="toggleModal('chokeModal')" class="text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <!-- GAGGING -->
+        <div class="bg-amber-50/80 border border-amber-200 rounded-xl p-4 space-y-2">
+          <div class="flex items-center gap-1.5 text-amber-900 font-bold text-sm">
+            <span>😮</span> Gagging (Normal Reflex)
+          </div>
+          <p class="text-[11px] font-semibold text-amber-800">Loud & Red = Learning to Chew</p>
+          <ul class="text-[11px] text-slate-700 space-y-1 list-disc pl-4">
+            <li>Airway is <strong>open</strong></li>
+            <li>Coughing, spluttering, retching</li>
+            <li>Red face, watery eyes, tongue push</li>
+          </ul>
+          <div class="bg-white p-2 rounded-lg border border-amber-200 text-[11px] font-bold text-emerald-800">
+            👉 Action: Stay calm. Sit on hands. DO NOT finger-sweep or slap back (it pushes food into airway). Let baby cough it up.
+          </div>
+        </div>
+
+        <!-- CHOKING -->
+        <div class="bg-rose-50/80 border border-rose-200 rounded-xl p-4 space-y-2">
+          <div class="flex items-center gap-1.5 text-rose-900 font-bold text-sm">
+            <span>🛑</span> Choking (Airway Blocked)
+          </div>
+          <p class="text-[11px] font-semibold text-rose-800">Silent & Blue = Immediate Emergency</p>
+          <ul class="text-[11px] text-slate-700 space-y-1 list-disc pl-4">
+            <li>Airway is <strong>blocked</strong></li>
+            <li>Silent, unable to cry or vocalize</li>
+            <li>High-pitched wheezing, wide panicked eyes</li>
+            <li>Lips or nails turning dusky/blue</li>
+          </ul>
+          <div class="bg-rose-600 text-white p-2 rounded-lg text-[11px] font-bold">
+            🚨 Action: Yell for 911. Flip baby head-down along forearm: 5 firm back blows between shoulder blades, flip to 5 chest thrusts.
+          </div>
+        </div>
+      </div>
+
+      <button onclick="toggleModal('chokeModal')" class="w-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2.5 rounded-xl">
+        Close Safety Guide
+      </button>
+    </div>
+  </div>
+
+  <!-- Pediatrician Summary Modal -->
+  <div id="drSummaryModal" class="hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-2xl w-full p-6 border border-slate-200 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b pb-3 no-print">
+        <div>
+          <h3 class="text-base font-bold text-slate-900">Pediatric Milestone & Allergen Report</h3>
+          <p class="text-xs text-slate-500">Ready for well-child visit review</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="window.print()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold px-3 py-1.5 rounded-lg border border-slate-200">
+            🖨️ Print
+          </button>
+          <button onclick="toggleModal('drSummaryModal')" class="text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
+        </div>
+      </div>
+
+      <div id="summaryContent" class="space-y-4 text-xs">
+        <!-- Injected via JavaScript -->
+      </div>
+    </div>
+  </div>
+
   <!-- Main Container -->
-  <main class="max-w-4xl mx-auto p-4 space-y-5">
+  <main class="max-w-4xl mx-auto p-3 sm:p-4 space-y-5">
 
     <!-- DAILY SUGGESTION CARD -->
     <section id="dailySuggestionContainer" class="bg-gradient-to-br from-emerald-50 to-teal-50 border-2 border-emerald-200 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3">
       <div class="flex items-center justify-between">
-        <span class="inline-flex items-center gap-1.5 bg-emerald-600 text-white text-[11px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wide shadow-sm">
+        <span class="inline-flex items-center gap-1.5 bg-emerald-600 text-white text-[10px] sm:text-[11px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wide shadow-sm">
           <span>✨</span> Daily Suggested Food To Try
         </span>
         <span id="suggestionBadge" class="text-[11px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-md"></span>
@@ -83,7 +169,7 @@
       </div>
 
       <div class="flex items-center justify-between pt-1">
-        <p class="text-[10px] text-slate-500 italic">💡 Only introduce 1 new major allergen at a time, preferably at morning/lunch.</p>
+        <p class="text-[10px] text-slate-500 italic">💡 Only introduce 1 new major allergen at a time at morning or lunch.</p>
         <button onclick="prefillFromSuggestion()" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold px-3.5 py-1.5 rounded-lg transition-colors shadow-sm flex items-center gap-1">
           <span>📝</span> Log This Food
         </button>
@@ -110,26 +196,27 @@
     <nav class="flex rounded-xl bg-slate-200/80 p-1 text-xs font-semibold">
       <button onclick="switchTab('foodsTab')" id="tabBtn-foodsTab" class="flex-1 py-2 text-center rounded-lg bg-white text-slate-900 shadow-sm transition-all">110 Foods Database</button>
       <button onclick="switchTab('logTab')" id="tabBtn-logTab" class="flex-1 py-2 text-center rounded-lg text-slate-600 hover:text-slate-900 transition-all">Daily Meal Log</button>
-      <button onclick="switchTab('allergensTab')" id="tabBtn-allergensTab" class="flex-1 py-2 text-center rounded-lg text-slate-600 hover:text-slate-900 transition-all">Top 9 Allergens</button>
+      <button onclick="switchTab('allergensTab')" id="tabBtn-allergensTab" class="flex-1 py-2 text-center rounded-lg text-slate-600 hover:text-slate-900 transition-all">Top 9 Allergens & Cadence</button>
     </nav>
 
     <!-- TAB 1: 110 FOODS DATABASE -->
     <section id="foodsTab" class="space-y-4">
       <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row gap-2.5 items-center">
         <div class="relative flex-1 w-full">
-          <input type="text" id="foodSearch" oninput="renderFoods()" placeholder="Search food name, texture, or preparation method..." class="w-full text-xs pl-8 pr-3 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none" />
+          <input type="text" id="foodSearch" oninput="renderFoods()" placeholder="Search food name, texture, preparation..." class="w-full text-xs pl-8 pr-3 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none" />
           <span class="absolute left-2.5 top-2.5 text-slate-400 text-xs">🔍</span>
         </div>
         <div class="flex gap-2 w-full sm:w-auto">
           <select id="foodCategoryFilter" onchange="renderFoods()" class="text-xs p-2.5 rounded-lg border border-slate-300 bg-white flex-1 sm:flex-none">
             <option value="All">All Categories (110)</option>
+            <option value="IronZinc">🥩 Iron & Zinc Priority (25+)</option>
             <option value="Veggie">Vegetables (25)</option>
             <option value="Fruit">Fruits (25)</option>
             <option value="Protein">Proteins & Meats (20)</option>
             <option value="Seafood">Fish & Shellfish (10)</option>
             <option value="Grain">Grains & Starches (12)</option>
             <option value="Dairy">Dairy & Dairy Alternatives (6)</option>
-            <option value="Fat">Nuts, Seeds & Healthy Fats (12)</option>
+            <option value="Fat">Nuts, Seeds & Fats (12)</option>
             <option value="TopAllergen">⚠️ Top 9 Allergens Only</option>
           </select>
           <select id="foodStatusFilter" onchange="renderFoods()" class="text-xs p-2.5 rounded-lg border border-slate-300 bg-white flex-1 sm:flex-none">
@@ -185,7 +272,7 @@
 
           <div>
             <label class="block text-xs font-semibold text-slate-600 mb-1">Food Item(s) Offered</label>
-            <input type="text" id="logFood" placeholder="e.g., Steamed sweet potato spear & mashed blueberries" required class="w-full text-xs p-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none" />
+            <input type="text" id="logFood" placeholder="e.g., Steamed sweet potato spear & peanut butter mash" required class="w-full text-xs p-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none" />
           </div>
 
           <div class="grid grid-cols-2 gap-3">
@@ -199,13 +286,13 @@
                 <option value="Loved">Loved 😍</option>
                 <option value="Liked">Liked 😊</option>
                 <option value="Neutral">Neutral 😐</option>
-                <option value="Gagged">Gagged (Normal) 😮</option>
+                <option value="Gagged">Gagged (Normal reflex) 😮</option>
                 <option value="Refused">Refused 🙅‍♂️</option>
               </select>
             </div>
           </div>
 
-          <div class="grid grid-cols-2 gap-3">
+          <div class="grid grid-cols-3 gap-3">
             <div>
               <label class="block text-xs font-semibold text-slate-600 mb-1">Allergen Included?</label>
               <select id="logAllergen" class="w-full text-xs p-2.5 rounded-lg border border-slate-300 bg-white">
@@ -222,14 +309,18 @@
               </select>
             </div>
             <div>
-              <label class="block text-xs font-semibold text-slate-600 mb-1">Milk Intake (oz)</label>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Milk (oz)</label>
               <input type="number" id="logMilk" placeholder="e.g., 6" class="w-full text-xs p-2.5 rounded-lg border border-slate-300 outline-none" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Water / Cup (oz/sips)</label>
+              <input type="text" id="logWater" placeholder="e.g., 1 oz / 3 sips" class="w-full text-xs p-2.5 rounded-lg border border-slate-300 outline-none" />
             </div>
           </div>
 
           <div>
             <label class="block text-xs font-semibold text-slate-600 mb-1">Notes / Symptoms</label>
-            <input type="text" id="logNotes" placeholder="e.g., Practiced palmar grasp; 20-min observation clear" class="w-full text-xs p-2.5 rounded-lg border border-slate-300 outline-none" />
+            <input type="text" id="logNotes" placeholder="e.g., Good pincer practice; clear 20-min skin observation" class="w-full text-xs p-2.5 rounded-lg border border-slate-300 outline-none" />
           </div>
 
           <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 rounded-xl text-sm transition-colors shadow-sm">
@@ -244,17 +335,13 @@
       </div>
     </section>
 
-    <!-- TAB 3: TOP 9 ALLERGENS -->
+    <!-- TAB 3: TOP 9 ALLERGENS & MAINTENANCE CADENCE -->
     <section id="allergensTab" class="hidden space-y-4">
       <div class="bg-amber-50 border border-amber-200 p-4 rounded-xl text-amber-900 text-xs leading-relaxed space-y-2">
         <div class="font-bold flex items-center gap-1.5 text-sm">
-          <span>⚠️</span> Evidence-Based Allergen Introduction Protocol
+          <span>⚠️</span> The Allergen Maintenance Protocol
         </div>
-        <ul class="list-disc pl-4 space-y-1 text-slate-700">
-          <li><strong>One at a Time:</strong> Introduce only one new major allergen at breakfast or lunch.</li>
-          <li><strong>15-Minute Rule:</strong> Offer ¼ tsp mixed into a safe puree, wait 15–20 minutes, then finish the serving.</li>
-          <li><strong>Sustained Exposure:</strong> Once introduced safely, offer each allergen <strong>1–2 times every week</strong> to build and maintain immune tolerance.</li>
-        </ul>
+        <p class="text-slate-700">Passing an allergen once is step one. To lock in permanent tolerance, offer each cleared allergen <strong>1–2 times every week</strong>. The tracker below monitors when each allergen was last fed.</p>
       </div>
 
       <div id="allergenList" class="space-y-3"></div>
@@ -265,135 +352,135 @@
   <script>
     const initialFoods = [
       // Vegetables (25)
-      { id: 1, name: "Sweet Potato", cat: "Veggie", allergen: false, allergenName: null, prep6m: "Steamed or roasted soft spears (adult finger length) or smooth mash.", prep9m: "Soft roasted 1/2-inch bite-sized cubes.", status: "To Try", tries: 0 },
-      { id: 2, name: "Carrot", cat: "Veggie", allergen: false, allergenName: null, prep6m: "Steamed tender spears (squishable between thumb and forefinger).", prep9m: "Small steamed bite-sized dices.", status: "To Try", tries: 0 },
-      { id: 3, name: "Broccoli", cat: "Veggie", allergen: false, allergenName: null, prep6m: "Large steamed soft floret with long stem handle.", prep9m: "Finely chopped steamed florets.", status: "To Try", tries: 0 },
-      { id: 4, name: "Zucchini", cat: "Veggie", allergen: false, allergenName: null, prep6m: "Steamed long spears with skin partially peeled.", prep9m: "Soft cooked quartered coins.", status: "To Try", tries: 0 },
-      { id: 5, name: "Butternut Squash", cat: "Veggie", allergen: false, allergenName: null, prep6m: "Roasted soft wedges or smooth fork mash.", prep9m: "Soft bite-sized cubes.", status: "To Try", tries: 0 },
-      { id: 6, name: "Cauliflower", cat: "Veggie", allergen: false, allergenName: null, prep6m: "Large steamed soft floret for palmar grasp.", prep9m: "Finely chopped tender florets.", status: "To Try", tries: 0 },
-      { id: 7, name: "Asparagus", cat: "Veggie", allergen: false, allergenName: null, prep6m: "Steamed whole thick stalk (woody base removed).", prep9m: "Chopped soft tips and bite pieces.", status: "To Try", tries: 0 },
-      { id: 8, name: "Green Beans", cat: "Veggie", allergen: false, allergenName: null, prep6m: "Whole steamed very soft beans for palmar grip.", prep9m: "Finely chopped bite-sized pieces.", status: "To Try", tries: 0 },
-      { id: 9, name: "Bell Pepper", cat: "Veggie", allergen: false, allergenName: null, prep6m: "Roasted and peeled soft wide strips (no raw crunchy skin).", prep9m: "Finely diced cooked peppers.", status: "To Try", tries: 0 },
-      { id: 10, name: "Beets", cat: "Veggie", allergen: false, allergenName: null, prep6m: "Boiled or roasted fork-tender wedges.", prep9m: "Diced soft cubes.", status: "To Try", tries: 0 },
-      { id: 11, name: "Parsnip", cat: "Veggie", allergen: false, allergenName: null, prep6m: "Steamed or roasted soft spears.", prep9m: "Soft bite-sized dices.", status: "To Try", tries: 0 },
-      { id: 12, name: "Acorn Squash", cat: "Veggie", allergen: false, allergenName: null, prep6m: "Baked soft crescents or puree.", prep9m: "Soft bite-sized chunks.", status: "To Try", tries: 0 },
-      { id: 13, name: "Pumpkin", cat: "Veggie", allergen: false, allergenName: null, prep6m: "Pureed or soft baked wedges (unsweetened).", prep9m: "Soft roasted bite cubes.", status: "To Try", tries: 0 },
-      { id: 14, name: "Spinach", cat: "Veggie", allergen: false, allergenName: null, prep6m: "Finely chopped and cooked into puree or grain mash.", prep9m: "Chopped cooked greens folded into eggs or pasta.", status: "To Try", tries: 0 },
-      { id: 15, name: "Kale", cat: "Veggie", allergen: false, allergenName: null, prep6m: "Steamed tender and finely chopped into puree.", prep9m: "Folded into omelets or pasta sauces.", status: "To Try", tries: 0 },
-      { id: 16, name: "Eggplant", cat: "Veggie", allergen: false, allergenName: null, prep6m: "Roasted soft skinless strips.", prep9m: "Small soft roasted cubes.", status: "To Try", tries: 0 },
-      { id: 17, name: "Yellow Squash", cat: "Veggie", allergen: false, allergenName: null, prep6m: "Steamed spears with tender skin.", prep9m: "Soft quartered rounds.", status: "To Try", tries: 0 },
-      { id: 18, name: "Peas", cat: "Veggie", allergen: false, allergenName: null, prep6m: "Mashed or flattened whole steamed green peas.", prep9m: "Flattened whole green peas for pincer grasp.", status: "To Try", tries: 0 },
-      { id: 19, name: "Cabbage", cat: "Veggie", allergen: false, allergenName: null, prep6m: "Braised or steamed very tender thick wedge.", prep9m: "Finely shredded soft braised cabbage.", status: "To Try", tries: 0 },
-      { id: 20, name: "Brussels Sprouts", cat: "Veggie", allergen: false, allergenName: null, prep6m: "Steamed very soft, halved and flattened.", prep9m: "Quartered tender roasted bites.", status: "To Try", tries: 0 },
-      { id: 21, name: "Mushrooms (Cremini)", cat: "Veggie", allergen: false, allergenName: null, prep6m: "Cooked whole large mushroom cap to gnaw on.", prep9m: "Finely diced cooked pieces.", status: "To Try", tries: 0 },
-      { id: 22, name: "Cucumber", cat: "Veggie", allergen: false, allergenName: null, prep6m: "Peeled thick spear (seeds removed) to soothe gums.", prep9m: "Thin shaved half-moons or fine dices.", status: "To Try", tries: 0 },
-      { id: 23, name: "Tomato", cat: "Veggie", allergen: false, allergenName: null, prep6m: "Large cooked or ripe raw wedge (skin and seeds removed).", prep9m: "Quartered small bite dices.", status: "To Try", tries: 0 },
-      { id: 24, name: "Turnip", cat: "Veggie", allergen: false, allergenName: null, prep6m: "Steamed soft wedges or mash.", prep9m: "Diced soft cooked cubes.", status: "To Try", tries: 0 },
-      { id: 25, name: "Rutabaga", cat: "Veggie", allergen: false, allergenName: null, prep6m: "Roasted or boiled soft spears.", prep9m: "Soft bite-sized dices.", status: "To Try", tries: 0 },
+      { id: 1, name: "Sweet Potato", cat: "Veggie", iron: false, allergen: false, allergenName: null, prep6m: "Steamed or roasted soft spears (adult finger length) or smooth mash.", prep9m: "Soft roasted 1/2-inch bite-sized cubes.", status: "To Try", tries: 0 },
+      { id: 2, name: "Carrot", cat: "Veggie", iron: false, allergen: false, allergenName: null, prep6m: "Steamed tender spears (squishable between thumb and forefinger).", prep9m: "Small steamed bite-sized dices.", status: "To Try", tries: 0 },
+      { id: 3, name: "Broccoli", cat: "Veggie", iron: true, allergen: false, allergenName: null, prep6m: "Large steamed soft floret with long stem handle.", prep9m: "Finely chopped steamed florets.", status: "To Try", tries: 0 },
+      { id: 4, name: "Zucchini", cat: "Veggie", iron: false, allergen: false, allergenName: null, prep6m: "Steamed long spears with skin partially peeled.", prep9m: "Soft cooked quartered coins.", status: "To Try", tries: 0 },
+      { id: 5, name: "Butternut Squash", cat: "Veggie", iron: false, allergen: false, allergenName: null, prep6m: "Roasted soft wedges or smooth fork mash.", prep9m: "Soft bite-sized cubes.", status: "To Try", tries: 0 },
+      { id: 6, name: "Cauliflower", cat: "Veggie", iron: false, allergen: false, allergenName: null, prep6m: "Large steamed soft floret for palmar grasp.", prep9m: "Finely chopped tender florets.", status: "To Try", tries: 0 },
+      { id: 7, name: "Asparagus", cat: "Veggie", iron: true, allergen: false, allergenName: null, prep6m: "Steamed whole thick stalk (woody base removed).", prep9m: "Chopped soft tips and bite pieces.", status: "To Try", tries: 0 },
+      { id: 8, name: "Green Beans", cat: "Veggie", iron: false, allergen: false, allergenName: null, prep6m: "Whole steamed very soft beans for palmar grip.", prep9m: "Finely chopped bite-sized pieces.", status: "To Try", tries: 0 },
+      { id: 9, name: "Bell Pepper", cat: "Veggie", iron: false, allergen: false, allergenName: null, prep6m: "Roasted and peeled soft wide strips (no raw crunchy skin).", prep9m: "Finely diced cooked peppers.", status: "To Try", tries: 0 },
+      { id: 10, name: "Beets", cat: "Veggie", iron: true, allergen: false, allergenName: null, prep6m: "Boiled or roasted fork-tender wedges.", prep9m: "Diced soft cubes.", status: "To Try", tries: 0 },
+      { id: 11, name: "Parsnip", cat: "Veggie", iron: false, allergen: false, allergenName: null, prep6m: "Steamed or roasted soft spears.", prep9m: "Soft bite-sized dices.", status: "To Try", tries: 0 },
+      { id: 12, name: "Acorn Squash", cat: "Veggie", iron: false, allergen: false, allergenName: null, prep6m: "Baked soft crescents or puree.", prep9m: "Soft bite-sized chunks.", status: "To Try", tries: 0 },
+      { id: 13, name: "Pumpkin", cat: "Veggie", iron: true, allergen: false, allergenName: null, prep6m: "Pureed or soft baked wedges (unsweetened).", prep9m: "Soft roasted bite cubes.", status: "To Try", tries: 0 },
+      { id: 14, name: "Spinach", cat: "Veggie", iron: true, allergen: false, allergenName: null, prep6m: "Finely chopped and cooked into puree or grain mash.", prep9m: "Chopped cooked greens folded into eggs or pasta.", status: "To Try", tries: 0 },
+      { id: 15, name: "Kale", cat: "Veggie", iron: true, allergen: false, allergenName: null, prep6m: "Steamed tender and finely chopped into puree.", prep9m: "Folded into omelets or pasta sauces.", status: "To Try", tries: 0 },
+      { id: 16, name: "Eggplant", cat: "Veggie", iron: false, allergen: false, allergenName: null, prep6m: "Roasted soft skinless strips.", prep9m: "Small soft roasted cubes.", status: "To Try", tries: 0 },
+      { id: 17, name: "Yellow Squash", cat: "Veggie", iron: false, allergen: false, allergenName: null, prep6m: "Steamed spears with tender skin.", prep9m: "Soft quartered rounds.", status: "To Try", tries: 0 },
+      { id: 18, name: "Peas", cat: "Veggie", iron: true, allergen: false, allergenName: null, prep6m: "Mashed or flattened whole steamed green peas.", prep9m: "Flattened whole green peas for pincer grasp.", status: "To Try", tries: 0 },
+      { id: 19, name: "Cabbage", cat: "Veggie", iron: false, allergen: false, allergenName: null, prep6m: "Braised or steamed very tender thick wedge.", prep9m: "Finely shredded soft braised cabbage.", status: "To Try", tries: 0 },
+      { id: 20, name: "Brussels Sprouts", cat: "Veggie", iron: true, allergen: false, allergenName: null, prep6m: "Steamed very soft, halved and flattened.", prep9m: "Quartered tender roasted bites.", status: "To Try", tries: 0 },
+      { id: 21, name: "Mushrooms (Cremini)", cat: "Veggie", iron: true, allergen: false, allergenName: null, prep6m: "Cooked whole large mushroom cap to gnaw on.", prep9m: "Finely diced cooked pieces.", status: "To Try", tries: 0 },
+      { id: 22, name: "Cucumber", cat: "Veggie", iron: false, allergen: false, allergenName: null, prep6m: "Peeled thick spear (seeds removed) to soothe gums.", prep9m: "Thin shaved half-moons or fine dices.", status: "To Try", tries: 0 },
+      { id: 23, name: "Tomato", cat: "Veggie", iron: false, allergen: false, allergenName: null, prep6m: "Large cooked or ripe raw wedge (skin and seeds removed).", prep9m: "Quartered small bite dices.", status: "To Try", tries: 0 },
+      { id: 24, name: "Turnip", cat: "Veggie", iron: false, allergen: false, allergenName: null, prep6m: "Steamed soft wedges or mash.", prep9m: "Diced soft cooked cubes.", status: "To Try", tries: 0 },
+      { id: 25, name: "Rutabaga", cat: "Veggie", iron: false, allergen: false, allergenName: null, prep6m: "Roasted or boiled soft spears.", prep9m: "Soft bite-sized dices.", status: "To Try", tries: 0 },
 
       // Fruits (25)
-      { id: 26, name: "Avocado", cat: "Fruit", allergen: false, allergenName: null, prep6m: "Long spear rolled in hemp hearts or ground flaxseed for grip.", prep9m: "Bite-sized diced chunks.", status: "To Try", tries: 0 },
-      { id: 27, name: "Banana", cat: "Fruit", allergen: false, allergenName: null, prep6m: "Half-peeled handle or sliced into longitudinal strips.", prep9m: "Small soft sliced discs.", status: "To Try", tries: 0 },
-      { id: 28, name: "Apple", cat: "Fruit", allergen: false, allergenName: null, prep6m: "Peeled and steamed soft slices (never raw or hard).", prep9m: "Grated raw apple or steamed tender dices.", status: "To Try", tries: 0 },
-      { id: 29, name: "Pear", cat: "Fruit", allergen: false, allergenName: null, prep6m: "Very ripe soft peeled spear or steamed slice.", prep9m: "Soft ripe bite-sized dices.", status: "To Try", tries: 0 },
-      { id: 30, name: "Blueberries", cat: "Fruit", allergen: false, allergenName: null, prep6m: "Flattened or smashed completely flat between fingers.", prep9m: "Smashed or quartered berries.", status: "To Try", tries: 0 },
-      { id: 31, name: "Strawberries", cat: "Fruit", allergen: false, allergenName: null, prep6m: "Large whole ripe strawberry to gnaw on or mashed.", prep9m: "Quartered or thinly sliced bite pieces.", status: "To Try", tries: 0 },
-      { id: 32, name: "Raspberries", cat: "Fruit", allergen: false, allergenName: null, prep6m: "Flattened or mashed gently.", prep9m: "Whole soft raspberries or halves.", status: "To Try", tries: 0 },
-      { id: 33, name: "Blackberries", cat: "Fruit", allergen: false, allergenName: null, prep6m: "Flattened or halved lengthwise.", prep9m: "Quartered soft pieces.", status: "To Try", tries: 0 },
-      { id: 34, name: "Mango", cat: "Fruit", allergen: false, allergenName: null, prep6m: "Mango pit with fruit intact or firm peeled spear.", prep9m: "Diced soft ripe cubes.", status: "To Try", tries: 0 },
-      { id: 35, name: "Peach", cat: "Fruit", allergen: false, allergenName: null, prep6m: "Very ripe peeled soft slices or steamed.", prep9m: "Diced ripe bite-sized pieces.", status: "To Try", tries: 0 },
-      { id: 36, name: "Plum", cat: "Fruit", allergen: false, allergenName: null, prep6m: "Very ripe soft halved plum (pit removed).", prep9m: "Diced ripe soft pieces.", status: "To Try", tries: 0 },
-      { id: 37, name: "Watermelon", cat: "Fruit", allergen: false, allergenName: null, prep6m: "Thick deseeded rectangular spear.", prep9m: "Diced deseeded cubes.", status: "To Try", tries: 0 },
-      { id: 38, name: "Cantaloupe", cat: "Fruit", allergen: false, allergenName: null, prep6m: "Thick soft ripe wedge (rind removed).", prep9m: "Bite-sized soft ripe dices.", status: "To Try", tries: 0 },
-      { id: 39, name: "Honeydew", cat: "Fruit", allergen: false, allergenName: null, prep6m: "Thick soft ripe spear.", prep9m: "Diced soft ripe cubes.", status: "To Try", tries: 0 },
-      { id: 40, name: "Pineapple", cat: "Fruit", allergen: false, allergenName: null, prep6m: "Large core spear to gnaw on (resist bite).", prep9m: "Finely minced soft ripe fruit.", status: "To Try", tries: 0 },
-      { id: 41, name: "Kiwi", cat: "Fruit", allergen: false, allergenName: null, prep6m: "Peeled ripe spear rolled in ground oats.", prep9m: "Quartered ripe thin wheels or dices.", status: "To Try", tries: 0 },
-      { id: 42, name: "Papaya", cat: "Fruit", allergen: false, allergenName: null, prep6m: "Ripe peeled long spear.", prep9m: "Soft bite-sized dices.", status: "To Try", tries: 0 },
-      { id: 43, name: "Apricot", cat: "Fruit", allergen: false, allergenName: null, prep6m: "Ripe soft halved fresh fruit or stewed.", prep9m: "Finely diced stewed pieces.", status: "To Try", tries: 0 },
-      { id: 44, name: "Cherries", cat: "Fruit", allergen: false, allergenName: null, prep6m: "Pitted and quartered or flattened.", prep9m: "Pitted and quartered bites.", status: "To Try", tries: 0 },
-      { id: 45, name: "Grapes", cat: "Fruit", allergen: false, allergenName: null, prep6m: "Quartered lengthwise (never whole round).", prep9m: "Quartered lengthwise bite pieces.", status: "To Try", tries: 0 },
-      { id: 46, name: "Oranges", cat: "Fruit", allergen: false, allergenName: null, prep6m: "Segment with membrane and seeds removed.", prep9m: "Bite-sized membrane-free pieces.", status: "To Try", tries: 0 },
-      { id: 47, name: "Grapefruit", cat: "Fruit", allergen: false, allergenName: null, prep6m: "Membrane-free segment flesh.", prep9m: "Bite-sized pulp pieces.", status: "To Try", tries: 0 },
-      { id: 48, name: "Figs (Fresh)", cat: "Fruit", allergen: false, allergenName: null, prep6m: "Quartered ripe fresh soft fig.", prep9m: "Finely diced ripe pieces.", status: "To Try", tries: 0 },
-      { id: 49, name: "Cranberries", cat: "Fruit", allergen: false, allergenName: null, prep6m: "Cooked and stewed into unsweetened puree.", prep9m: "Mixed into warm oatmeal or porridge.", status: "To Try", tries: 0 },
-      { id: 50, name: "Prunes", cat: "Fruit", allergen: false, allergenName: null, prep6m: "Stewed and pureed or mashed.", prep9m: "Finely chopped stewed prunes.", status: "To Try", tries: 0 },
+      { id: 26, name: "Avocado", cat: "Fruit", iron: false, allergen: false, allergenName: null, prep6m: "Long spear rolled in hemp hearts or ground flaxseed for grip.", prep9m: "Bite-sized diced chunks.", status: "To Try", tries: 0 },
+      { id: 27, name: "Banana", cat: "Fruit", iron: false, allergen: false, allergenName: null, prep6m: "Half-peeled handle or sliced into longitudinal strips.", prep9m: "Small soft sliced discs.", status: "To Try", tries: 0 },
+      { id: 28, name: "Apple", cat: "Fruit", iron: false, allergen: false, allergenName: null, prep6m: "Peeled and steamed soft slices (never raw or hard).", prep9m: "Grated raw apple or steamed tender dices.", status: "To Try", tries: 0 },
+      { id: 29, name: "Pear", cat: "Fruit", iron: false, allergen: false, allergenName: null, prep6m: "Very ripe soft peeled spear or steamed slice.", prep9m: "Soft ripe bite-sized dices.", status: "To Try", tries: 0 },
+      { id: 30, name: "Blueberries", cat: "Fruit", iron: false, allergen: false, allergenName: null, prep6m: "Flattened or smashed completely flat between fingers.", prep9m: "Smashed or quartered berries.", status: "To Try", tries: 0 },
+      { id: 31, name: "Strawberries", cat: "Fruit", iron: false, allergen: false, allergenName: null, prep6m: "Large whole ripe strawberry to gnaw on or mashed.", prep9m: "Quartered or thinly sliced bite pieces.", status: "To Try", tries: 0 },
+      { id: 32, name: "Raspberries", cat: "Fruit", iron: false, allergen: false, allergenName: null, prep6m: "Flattened or mashed gently.", prep9m: "Whole soft raspberries or halves.", status: "To Try", tries: 0 },
+      { id: 33, name: "Blackberries", cat: "Fruit", iron: false, allergen: false, allergenName: null, prep6m: "Flattened or halved lengthwise.", prep9m: "Quartered soft pieces.", status: "To Try", tries: 0 },
+      { id: 34, name: "Mango", cat: "Fruit", iron: false, allergen: false, allergenName: null, prep6m: "Mango pit with fruit intact or firm peeled spear.", prep9m: "Diced soft ripe cubes.", status: "To Try", tries: 0 },
+      { id: 35, name: "Peach", cat: "Fruit", iron: false, allergen: false, allergenName: null, prep6m: "Very ripe peeled soft slices or steamed.", prep9m: "Diced ripe bite-sized pieces.", status: "To Try", tries: 0 },
+      { id: 36, name: "Plum", cat: "Fruit", iron: false, allergen: false, allergenName: null, prep6m: "Very ripe soft halved plum (pit removed).", prep9m: "Diced ripe soft pieces.", status: "To Try", tries: 0 },
+      { id: 37, name: "Watermelon", cat: "Fruit", iron: false, allergen: false, allergenName: null, prep6m: "Thick deseeded rectangular spear.", prep9m: "Diced deseeded cubes.", status: "To Try", tries: 0 },
+      { id: 38, name: "Cantaloupe", cat: "Fruit", iron: false, allergen: false, allergenName: null, prep6m: "Thick soft ripe wedge (rind removed).", prep9m: "Bite-sized soft ripe dices.", status: "To Try", tries: 0 },
+      { id: 39, name: "Honeydew", cat: "Fruit", iron: false, allergen: false, allergenName: null, prep6m: "Thick soft ripe spear.", prep9m: "Diced soft ripe cubes.", status: "To Try", tries: 0 },
+      { id: 40, name: "Pineapple", cat: "Fruit", iron: false, allergen: false, allergenName: null, prep6m: "Large core spear to gnaw on (resist bite).", prep9m: "Finely minced soft ripe fruit.", status: "To Try", tries: 0 },
+      { id: 41, name: "Kiwi", cat: "Fruit", iron: false, allergen: false, allergenName: null, prep6m: "Peeled ripe spear rolled in ground oats.", prep9m: "Quartered ripe thin wheels or dices.", status: "To Try", tries: 0 },
+      { id: 42, name: "Papaya", cat: "Fruit", iron: false, allergen: false, allergenName: null, prep6m: "Ripe peeled long spear.", prep9m: "Soft bite-sized dices.", status: "To Try", tries: 0 },
+      { id: 43, name: "Apricot", cat: "Fruit", iron: true, allergen: false, allergenName: null, prep6m: "Ripe soft halved fresh fruit or stewed.", prep9m: "Finely diced stewed pieces.", status: "To Try", tries: 0 },
+      { id: 44, name: "Cherries", cat: "Fruit", iron: false, allergen: false, allergenName: null, prep6m: "Pitted and quartered or flattened.", prep9m: "Pitted and quartered bites.", status: "To Try", tries: 0 },
+      { id: 45, name: "Grapes", cat: "Fruit", iron: false, allergen: false, allergenName: null, prep6m: "Quartered lengthwise (never whole round).", prep9m: "Quartered lengthwise bite pieces.", status: "To Try", tries: 0 },
+      { id: 46, name: "Oranges", cat: "Fruit", iron: false, allergen: false, allergenName: null, prep6m: "Segment with membrane and seeds removed.", prep9m: "Bite-sized membrane-free pieces.", status: "To Try", tries: 0 },
+      { id: 47, name: "Grapefruit", cat: "Fruit", iron: false, allergen: false, allergenName: null, prep6m: "Membrane-free segment flesh.", prep9m: "Bite-sized pulp pieces.", status: "To Try", tries: 0 },
+      { id: 48, name: "Figs (Fresh)", cat: "Fruit", iron: true, allergen: false, allergenName: null, prep6m: "Quartered ripe fresh soft fig.", prep9m: "Finely diced ripe pieces.", status: "To Try", tries: 0 },
+      { id: 49, name: "Cranberries", cat: "Fruit", iron: false, allergen: false, allergenName: null, prep6m: "Cooked and stewed into unsweetened puree.", prep9m: "Mixed into warm oatmeal or porridge.", status: "To Try", tries: 0 },
+      { id: 50, name: "Prunes", cat: "Fruit", iron: true, allergen: false, allergenName: null, prep6m: "Stewed and pureed or mashed.", prep9m: "Finely chopped stewed prunes.", status: "To Try", tries: 0 },
 
       // Proteins & Meats (20)
-      { id: 51, name: "Chicken Thigh", cat: "Protein", allergen: false, allergenName: null, prep6m: "Slow-cooked moist shredded meat or clean drumstick bone.", prep9m: "Tender minced or finely shredded pieces.", status: "To Try", tries: 0 },
-      { id: 52, name: "Ground Beef", cat: "Protein", allergen: false, allergenName: null, prep6m: "Simmered meat sauce or golf-ball size soft meatball.", prep9m: "Crumbled soft cooked ground beef.", status: "To Try", tries: 0 },
-      { id: 53, name: "Turkey", cat: "Protein", allergen: false, allergenName: null, prep6m: "Shredded braised breast or soft meatball.", prep9m: "Finely diced soft cooked turkey.", status: "To Try", tries: 0 },
-      { id: 54, name: "Pork Tenderloin", cat: "Protein", allergen: false, allergenName: null, prep6m: "Thick roasted strip to gnaw on or braised pork.", prep9m: "Minced tender pulled pork.", status: "To Try", tries: 0 },
-      { id: 55, name: "Lamb", cat: "Protein", allergen: false, allergenName: null, prep6m: "Slow-braised lamb shank shred or meatball.", prep9m: "Tender minced lamb pieces.", status: "To Try", tries: 0 },
-      { id: 56, name: "Beef Liver", cat: "Protein", allergen: false, allergenName: null, prep6m: "Well-cooked liver pureed (max 1 tsp weekly).", prep9m: "Finely grated cooked liver over vegetables.", status: "To Try", tries: 0 },
-      { id: 57, name: "Lentils (Brown)", cat: "Protein", allergen: false, allergenName: null, prep6m: "Soft cooked stew or mash with olive oil.", prep9m: "Lentil patties or thick stew.", status: "To Try", tries: 0 },
-      { id: 58, name: "Red Lentils", cat: "Protein", allergen: false, allergenName: null, prep6m: "Smooth cooked dahl or thick porridge.", prep9m: "Folded into rice or mixed grains.", status: "To Try", tries: 0 },
-      { id: 59, name: "Black Beans", cat: "Protein", allergen: false, allergenName: null, prep6m: "Cooked soft and smashed or pureed.", prep9m: "Lightly flattened whole beans.", status: "To Try", tries: 0 },
-      { id: 60, name: "Chickpeas", cat: "Protein", allergen: false, allergenName: null, prep6m: "Smooth hummus or cooked and smashed flat.", prep9m: "Flattened whole chickpeas.", status: "To Try", tries: 0 },
-      { id: 61, name: "Kidney Beans", cat: "Protein", allergen: false, allergenName: null, prep6m: "Well-cooked and thoroughly smashed.", prep9m: "Flattened soft beans.", status: "To Try", tries: 0 },
-      { id: 62, name: "Cannellini Beans", cat: "Protein", allergen: false, allergenName: null, prep6m: "Mashed with olive oil and garlic.", prep9m: "Lightly smashed whole beans.", status: "To Try", tries: 0 },
-      { id: 63, name: "Pinto Beans", cat: "Protein", allergen: false, allergenName: null, prep6m: "Mashed refried-style (no sodium).", prep9m: "Lightly flattened whole beans.", status: "To Try", tries: 0 },
-      { id: 64, name: "Edamame", cat: "Protein", allergen: true, allergenName: "Soy", prep6m: "Steamed and pureed or mashed smooth.", prep9m: "Thoroughly flattened edamame beans.", status: "To Try", tries: 0 },
-      { id: 65, name: "Tofu (Firm)", cat: "Protein", allergen: true, allergenName: "Soy", prep6m: "Steamed firm tofu spears rolled in hemp hearts.", prep9m: "Soft tofu cubes.", status: "To Try", tries: 0 },
-      { id: 66, name: "Tofu (Silken)", cat: "Protein", allergen: true, allergenName: "Soy", prep6m: "Blended into fruit or vegetable purees.", prep9m: "Spoon-fed soft curd.", status: "To Try", tries: 0 },
-      { id: 67, name: "Egg Yolk", cat: "Protein", allergen: true, allergenName: "Egg", prep6m: "Hard-boiled yolk mashed with milk or water.", prep9m: "Hard-boiled yolk crumbles.", status: "To Try", tries: 0 },
-      { id: 68, name: "Whole Egg (Scrambled)", cat: "Protein", allergen: true, allergenName: "Egg", prep6m: "Well-cooked soft scrambled curds or strips.", prep9m: "Bite-sized scrambled egg curds.", status: "To Try", tries: 0 },
-      { id: 69, name: "Egg (Hard-Boiled)", cat: "Protein", allergen: true, allergenName: "Egg", prep6m: "Quartered hard-boiled egg lengthwise.", prep9m: "Finely chopped hard-boiled egg.", status: "To Try", tries: 0 },
-      { id: 70, name: "Bone Broth", cat: "Protein", allergen: false, allergenName: null, prep6m: "Warm broth in open cup or thinning puree.", prep9m: "Used to cook grains or pasta.", status: "To Try", tries: 0 },
+      { id: 51, name: "Chicken Thigh", cat: "Protein", iron: true, allergen: false, allergenName: null, prep6m: "Slow-cooked moist shredded meat or clean drumstick bone.", prep9m: "Tender minced or finely shredded pieces.", status: "To Try", tries: 0 },
+      { id: 52, name: "Ground Beef", cat: "Protein", iron: true, allergen: false, allergenName: null, prep6m: "Simmered meat sauce or golf-ball size soft meatball.", prep9m: "Crumbled soft cooked ground beef.", status: "To Try", tries: 0 },
+      { id: 53, name: "Turkey", cat: "Protein", iron: true, allergen: false, allergenName: null, prep6m: "Shredded braised dark meat or soft meatball.", prep9m: "Finely diced soft cooked turkey.", status: "To Try", tries: 0 },
+      { id: 54, name: "Pork Tenderloin", cat: "Protein", iron: true, allergen: false, allergenName: null, prep6m: "Thick roasted strip to gnaw on or braised pork.", prep9m: "Minced tender pulled pork.", status: "To Try", tries: 0 },
+      { id: 55, name: "Lamb", cat: "Protein", iron: true, allergen: false, allergenName: null, prep6m: "Slow-braised lamb shank shred or meatball.", prep9m: "Tender minced lamb pieces.", status: "To Try", tries: 0 },
+      { id: 56, name: "Beef Liver", cat: "Protein", iron: true, allergen: false, allergenName: null, prep6m: "Well-cooked liver pureed (max 1 tsp weekly).", prep9m: "Finely grated cooked liver over vegetables.", status: "To Try", tries: 0 },
+      { id: 57, name: "Lentils (Brown)", cat: "Protein", iron: true, allergen: false, allergenName: null, prep6m: "Soft cooked stew or mash with olive oil.", prep9m: "Lentil patties or thick stew.", status: "To Try", tries: 0 },
+      { id: 58, name: "Red Lentils", cat: "Protein", iron: true, allergen: false, allergenName: null, prep6m: "Smooth cooked dahl or thick porridge.", prep9m: "Folded into rice or mixed grains.", status: "To Try", tries: 0 },
+      { id: 59, name: "Black Beans", cat: "Protein", iron: true, allergen: false, allergenName: null, prep6m: "Cooked soft and smashed or pureed.", prep9m: "Lightly flattened whole beans.", status: "To Try", tries: 0 },
+      { id: 60, name: "Chickpeas", cat: "Protein", iron: true, allergen: false, allergenName: null, prep6m: "Smooth hummus or cooked and smashed flat.", prep9m: "Flattened whole chickpeas.", status: "To Try", tries: 0 },
+      { id: 61, name: "Kidney Beans", cat: "Protein", iron: true, allergen: false, allergenName: null, prep6m: "Well-cooked and thoroughly smashed.", prep9m: "Flattened soft beans.", status: "To Try", tries: 0 },
+      { id: 62, name: "Cannellini Beans", cat: "Protein", iron: true, allergen: false, allergenName: null, prep6m: "Mashed with olive oil and garlic.", prep9m: "Lightly smashed whole beans.", status: "To Try", tries: 0 },
+      { id: 63, name: "Pinto Beans", cat: "Protein", iron: true, allergen: false, allergenName: null, prep6m: "Mashed refried-style (no sodium).", prep9m: "Lightly flattened whole beans.", status: "To Try", tries: 0 },
+      { id: 64, name: "Edamame", cat: "Protein", iron: true, allergen: true, allergenName: "Soy", prep6m: "Steamed and pureed or mashed smooth.", prep9m: "Thoroughly flattened edamame beans.", status: "To Try", tries: 0 },
+      { id: 65, name: "Tofu (Firm)", cat: "Protein", iron: true, allergen: true, allergenName: "Soy", prep6m: "Steamed firm tofu spears rolled in hemp hearts.", prep9m: "Soft tofu cubes.", status: "To Try", tries: 0 },
+      { id: 66, name: "Tofu (Silken)", cat: "Protein", iron: true, allergen: true, allergenName: "Soy", prep6m: "Blended into fruit or vegetable purees.", prep9m: "Spoon-fed soft curd.", status: "To Try", tries: 0 },
+      { id: 67, name: "Egg Yolk", cat: "Protein", iron: true, allergen: true, allergenName: "Egg", prep6m: "Hard-boiled yolk mashed with milk or water.", prep9m: "Hard-boiled yolk crumbles.", status: "To Try", tries: 0 },
+      { id: 68, name: "Whole Egg (Scrambled)", cat: "Protein", iron: true, allergen: true, allergenName: "Egg", prep6m: "Well-cooked soft scrambled curds or strips.", prep9m: "Bite-sized scrambled egg curds.", status: "To Try", tries: 0 },
+      { id: 69, name: "Egg (Hard-Boiled)", cat: "Protein", iron: true, allergen: true, allergenName: "Egg", prep6m: "Quartered hard-boiled egg lengthwise.", prep9m: "Finely chopped hard-boiled egg.", status: "To Try", tries: 0 },
+      { id: 70, name: "Bone Broth", cat: "Protein", iron: false, allergen: false, allergenName: null, prep6m: "Warm broth in open cup or thinning puree.", prep9m: "Used to cook grains or pasta.", status: "To Try", tries: 0 },
 
       // Fish & Shellfish (10)
-      { id: 71, name: "Salmon", cat: "Seafood", allergen: true, allergenName: "Fish", prep6m: "Flaked cooked fillet (strictly check for bones).", prep9m: "Small flaked salmon or salmon cake bites.", status: "To Try", tries: 0 },
-      { id: 72, name: "Cod", cat: "Seafood", allergen: true, allergenName: "Fish", prep6m: "Flaked tender white fish (boneless).", prep9m: "Small soft flaked pieces.", status: "To Try", tries: 0 },
-      { id: 73, name: "Haddock", cat: "Seafood", allergen: true, allergenName: "Fish", prep6m: "Poached and flaked boneless fish.", prep9m: "Flaked pieces or fish cakes.", status: "To Try", tries: 0 },
-      { id: 74, name: "Sardines (in Water)", cat: "Seafood", allergen: true, allergenName: "Fish", prep6m: "Mashed boneless and skinless fish with avocado.", prep9m: "Small flaked pieces.", status: "To Try", tries: 0 },
-      { id: 75, name: "Tuna (Chunk Light)", cat: "Seafood", allergen: true, allergenName: "Fish", prep6m: "Flaked low-mercury tuna mixed in puree.", prep9m: "Flaked tuna cakes or bites.", status: "To Try", tries: 0 },
-      { id: 76, name: "Shrimp", cat: "Seafood", allergen: true, allergenName: "Shellfish", prep6m: "Steamed and finely minced into puree or patty.", prep9m: "Finely diced cooked shrimp.", status: "To Try", tries: 0 },
-      { id: 77, name: "Crab", cat: "Seafood", allergen: true, allergenName: "Shellfish", prep6m: "Finely flaked lump crabmeat (no shell fragments).", prep9m: "Small flaked crab bites.", status: "To Try", tries: 0 },
-      { id: 78, name: "Lobster", cat: "Seafood", allergen: true, allergenName: "Shellfish", prep6m: "Finely minced steamed lobster meat.", prep9m: "Finely chopped tender lobster.", status: "To Try", tries: 0 },
-      { id: 79, name: "Scallops", cat: "Seafood", allergen: true, allergenName: "Shellfish", prep6m: "Steamed tender and thinly sliced across grain.", prep9m: "Finely diced tender scallop.", status: "To Try", tries: 0 },
-      { id: 80, name: "Halibut", cat: "Seafood", allergen: true, allergenName: "Fish", prep6m: "Flaked baked fillet (deboned).", prep9m: "Flaked tender fish bites.", status: "To Try", tries: 0 },
+      { id: 71, name: "Salmon", cat: "Seafood", iron: true, allergen: true, allergenName: "Fish", prep6m: "Flaked cooked fillet (strictly check for bones).", prep9m: "Small flaked salmon or salmon cake bites.", status: "To Try", tries: 0 },
+      { id: 72, name: "Cod", cat: "Seafood", iron: false, allergen: true, allergenName: "Fish", prep6m: "Flaked tender white fish (boneless).", prep9m: "Small soft flaked pieces.", status: "To Try", tries: 0 },
+      { id: 73, name: "Haddock", cat: "Seafood", iron: false, allergen: true, allergenName: "Fish", prep6m: "Poached and flaked boneless fish.", prep9m: "Flaked pieces or fish cakes.", status: "To Try", tries: 0 },
+      { id: 74, name: "Sardines (in Water)", cat: "Seafood", iron: true, allergen: true, allergenName: "Fish", prep6m: "Mashed boneless and skinless fish with avocado.", prep9m: "Small flaked pieces.", status: "To Try", tries: 0 },
+      { id: 75, name: "Tuna (Chunk Light)", cat: "Seafood", iron: true, allergen: true, allergenName: "Fish", prep6m: "Flaked low-mercury tuna mixed in puree.", prep9m: "Flaked tuna cakes or bites.", status: "To Try", tries: 0 },
+      { id: 76, name: "Shrimp", cat: "Seafood", iron: true, allergen: true, allergenName: "Shellfish", prep6m: "Steamed and finely minced into puree or patty.", prep9m: "Finely diced cooked shrimp.", status: "To Try", tries: 0 },
+      { id: 77, name: "Crab", cat: "Seafood", iron: true, allergen: true, allergenName: "Shellfish", prep6m: "Finely flaked lump crabmeat (no shell fragments).", prep9m: "Small flaked crab bites.", status: "To Try", tries: 0 },
+      { id: 78, name: "Lobster", cat: "Seafood", iron: false, allergen: true, allergenName: "Shellfish", prep6m: "Finely minced steamed lobster meat.", prep9m: "Finely chopped tender lobster.", status: "To Try", tries: 0 },
+      { id: 79, name: "Scallops", cat: "Seafood", iron: true, allergen: true, allergenName: "Shellfish", prep6m: "Steamed tender and thinly sliced across grain.", prep9m: "Finely diced tender scallop.", status: "To Try", tries: 0 },
+      { id: 80, name: "Halibut", cat: "Seafood", iron: false, allergen: true, allergenName: "Fish", prep6m: "Flaked baked fillet (deboned).", prep9m: "Flaked tender fish bites.", status: "To Try", tries: 0 },
 
       // Grains & Starches (12)
-      { id: 81, name: "Rolled Oats", cat: "Grain", allergen: false, allergenName: null, prep6m: "Warm cooked baby oatmeal with water or milk.", prep9m: "Thick clumped oatmeal for finger grabbing.", status: "To Try", tries: 0 },
-      { id: 82, name: "Quinoa", cat: "Grain", allergen: false, allergenName: null, prep6m: "Cooked soft in porridge or formed patties.", prep9m: "Fluffy grain tossed with olive oil.", status: "To Try", tries: 0 },
-      { id: 83, name: "Brown Rice", cat: "Grain", allergen: false, allergenName: null, prep6m: "Overcooked soft rice porridge (congee).", prep9m: "Sticky soft rice balls.", status: "To Try", tries: 0 },
-      { id: 84, name: "White Rice", cat: "Grain", allergen: false, allergenName: null, prep6m: "Soft cooked rice mash or rice cakes.", prep9m: "Sticky rice bites.", status: "To Try", tries: 0 },
-      { id: 85, name: "Barley", cat: "Grain", allergen: true, allergenName: "Wheat", prep6m: "Slow-cooked soft barley porridge.", prep9m: "Soft cooked whole barley grains.", status: "To Try", tries: 0 },
-      { id: 86, name: "Millet", cat: "Grain", allergen: false, allergenName: null, prep6m: "Cooked soft into mash or porridge.", prep9m: "Grain patties or porridge clumps.", status: "To Try", tries: 0 },
-      { id: 87, name: "Amaranth", cat: "Grain", allergen: false, allergenName: null, prep6m: "Cooked into creamy breakfast porridge.", prep9m: "Thick porridge scoops.", status: "To Try", tries: 0 },
-      { id: 88, name: "Farro", cat: "Grain", allergen: true, allergenName: "Wheat", prep6m: "Simmered until very tender and mashed.", prep9m: "Cooked soft whole grains.", status: "To Try", tries: 0 },
-      { id: 89, name: "Whole Wheat Pasta", cat: "Grain", allergen: true, allergenName: "Wheat", prep6m: "Large cooked spiral pasta (fusilli) cooked soft.", prep9m: "Cut bite-sized pasta tubes.", status: "To Try", tries: 0 },
-      { id: 90, name: "Wheat Toast", cat: "Grain", allergen: true, allergenName: "Wheat", prep6m: "Lightly toasted long crust strip (not gummy).", prep9m: "Bite-sized toasted squares.", status: "To Try", tries: 0 },
-      { id: 91, name: "Couscous", cat: "Grain", allergen: true, allergenName: "Wheat", prep6m: "Soft couscous mixed with sweet potato puree.", prep9m: "Fluffy couscous with vegetables.", status: "To Try", tries: 0 },
-      { id: 92, name: "Polenta", cat: "Grain", allergen: false, allergenName: null, prep6m: "Cooked soft polenta spears (cooled to firm).", prep9m: "Soft bite-sized polenta cubes.", status: "To Try", tries: 0 },
+      { id: 81, name: "Rolled Oats", cat: "Grain", iron: true, allergen: false, allergenName: null, prep6m: "Warm cooked baby oatmeal with water or milk.", prep9m: "Thick clumped oatmeal for finger grabbing.", status: "To Try", tries: 0 },
+      { id: 82, name: "Quinoa", cat: "Grain", iron: true, allergen: false, allergenName: null, prep6m: "Cooked soft in porridge or formed patties.", prep9m: "Fluffy grain tossed with olive oil.", status: "To Try", tries: 0 },
+      { id: 83, name: "Brown Rice", cat: "Grain", iron: false, allergen: false, allergenName: null, prep6m: "Overcooked soft rice porridge (congee).", prep9m: "Sticky soft rice balls.", status: "To Try", tries: 0 },
+      { id: 84, name: "White Rice", cat: "Grain", iron: false, allergen: false, allergenName: null, prep6m: "Soft cooked rice mash or rice cakes.", prep9m: "Sticky rice bites.", status: "To Try", tries: 0 },
+      { id: 85, name: "Barley", cat: "Grain", iron: true, allergen: true, allergenName: "Wheat", prep6m: "Slow-cooked soft barley porridge.", prep9m: "Soft cooked whole barley grains.", status: "To Try", tries: 0 },
+      { id: 86, name: "Millet", cat: "Grain", iron: true, allergen: false, allergenName: null, prep6m: "Cooked soft into mash or porridge.", prep9m: "Grain patties or porridge clumps.", status: "To Try", tries: 0 },
+      { id: 87, name: "Amaranth", cat: "Grain", iron: true, allergen: false, allergenName: null, prep6m: "Cooked into creamy breakfast porridge.", prep9m: "Thick porridge scoops.", status: "To Try", tries: 0 },
+      { id: 88, name: "Farro", cat: "Grain", iron: true, allergen: true, allergenName: "Wheat", prep6m: "Simmered until very tender and mashed.", prep9m: "Cooked soft whole grains.", status: "To Try", tries: 0 },
+      { id: 89, name: "Whole Wheat Pasta", cat: "Grain", iron: true, allergen: true, allergenName: "Wheat", prep6m: "Large cooked spiral pasta (fusilli) cooked soft.", prep9m: "Cut bite-sized pasta tubes.", status: "To Try", tries: 0 },
+      { id: 90, name: "Wheat Toast", cat: "Grain", iron: true, allergen: true, allergenName: "Wheat", prep6m: "Lightly toasted long crust strip (not gummy).", prep9m: "Bite-sized toasted squares.", status: "To Try", tries: 0 },
+      { id: 91, name: "Couscous", cat: "Grain", iron: false, allergen: true, allergenName: "Wheat", prep6m: "Soft couscous mixed with sweet potato puree.", prep9m: "Fluffy couscous with vegetables.", status: "To Try", tries: 0 },
+      { id: 92, name: "Polenta", cat: "Grain", iron: false, allergen: false, allergenName: null, prep6m: "Cooked soft polenta spears (cooled to firm).", prep9m: "Soft bite-sized polenta cubes.", status: "To Try", tries: 0 },
 
       // Dairy & Alternatives (6)
-      { id: 93, name: "Plain Greek Yogurt", cat: "Dairy", allergen: true, allergenName: "Cow's Milk", prep6m: "Full-fat whole milk yogurt on pre-loaded spoon.", prep9m: "Self-feeding spoonfuls or yogurt drops.", status: "To Try", tries: 0 },
-      { id: 94, name: "Ricotta Cheese", cat: "Dairy", allergen: true, allergenName: "Cow's Milk", prep6m: "Smooth whole-milk ricotta spooned or spread.", prep9m: "Dollops on fruit or pasta.", status: "To Try", tries: 0 },
-      { id: 95, name: "Cottage Cheese", cat: "Dairy", allergen: true, allergenName: "Cow's Milk", prep6m: "Soft small low-sodium curds on spoon.", prep9m: "Curds for pincer grasp practice.", status: "To Try", tries: 0 },
-      { id: 96, name: "Pasteurized Mozzarella", cat: "Dairy", allergen: true, allergenName: "Cow's Milk", prep6m: "Thick strip of fresh soft mozzarella.", prep9m: "Grated or finely diced soft cheese.", status: "To Try", tries: 0 },
-      { id: 97, name: "Mild Cheddar", cat: "Dairy", allergen: true, allergenName: "Cow's Milk", prep6m: "Thin shaved sheet or pasteurized stick.", prep9m: "Finely grated or tiny diced cubes.", status: "To Try", tries: 0 },
-      { id: 98, name: "Soy Yogurt", cat: "Dairy", allergen: true, allergenName: "Soy", prep6m: "Plain unsweetened soy yogurt on spoon.", prep9m: "Spoon-fed or fruit dip.", status: "To Try", tries: 0 },
+      { id: 93, name: "Plain Greek Yogurt", cat: "Dairy", iron: false, allergen: true, allergenName: "Cow's Milk", prep6m: "Full-fat whole milk yogurt on pre-loaded spoon.", prep9m: "Self-feeding spoonfuls or yogurt drops.", status: "To Try", tries: 0 },
+      { id: 94, name: "Ricotta Cheese", cat: "Dairy", iron: false, allergen: true, allergenName: "Cow's Milk", prep6m: "Smooth whole-milk ricotta spooned or spread.", prep9m: "Dollops on fruit or pasta.", status: "To Try", tries: 0 },
+      { id: 95, name: "Cottage Cheese", cat: "Dairy", iron: false, allergen: true, allergenName: "Cow's Milk", prep6m: "Soft small low-sodium curds on spoon.", prep9m: "Curds for pincer grasp practice.", status: "To Try", tries: 0 },
+      { id: 96, name: "Pasteurized Mozzarella", cat: "Dairy", iron: false, allergen: true, allergenName: "Cow's Milk", prep6m: "Thick strip of fresh soft mozzarella.", prep9m: "Grated or finely diced soft cheese.", status: "To Try", tries: 0 },
+      { id: 97, name: "Mild Cheddar", cat: "Dairy", iron: false, allergen: true, allergenName: "Cow's Milk", prep6m: "Thin shaved sheet or pasteurized stick.", prep9m: "Finely grated or tiny diced cubes.", status: "To Try", tries: 0 },
+      { id: 98, name: "Soy Yogurt", cat: "Dairy", iron: true, allergen: true, allergenName: "Soy", prep6m: "Plain unsweetened soy yogurt on spoon.", prep9m: "Spoon-fed or fruit dip.", status: "To Try", tries: 0 },
 
       // Nuts, Seeds & Healthy Fats (12)
-      { id: 99, name: "Peanut Butter", cat: "Fat", allergen: true, allergenName: "Peanut", prep6m: "Smooth peanut butter thinned with warm milk or puree.", prep9m: "Thin smear on toast strip or pancake.", status: "To Try", tries: 0 },
-      { id: 100, name: "Almond Butter", cat: "Fat", allergen: true, allergenName: "Tree Nut", prep6m: "Smooth almond butter thinned in oatmeal.", prep9m: "Thin spread on fruit slices.", status: "To Try", tries: 0 },
-      { id: 101, name: "Cashew Butter", cat: "Fat", allergen: true, allergenName: "Tree Nut", prep6m: "Smooth cashew butter thinned with warm water.", prep9m: "Blended into vegetable sauces.", status: "To Try", tries: 0 },
-      { id: 102, name: "Walnut Butter", cat: "Fat", allergen: true, allergenName: "Tree Nut", prep6m: "Finely ground walnuts or thinned butter.", prep9m: "Sprinkled finely ground over fruit.", status: "To Try", tries: 0 },
-      { id: 103, name: "Pecan Butter", cat: "Fat", allergen: true, allergenName: "Tree Nut", prep6m: "Smooth thinned pecan butter in purees.", prep9m: "Thin layer on soft baked goods.", status: "To Try", tries: 0 },
-      { id: 104, name: "Pistachio Butter", cat: "Fat", allergen: true, allergenName: "Tree Nut", prep6m: "Smooth thinned pistachio paste.", prep9m: "Mixed into warm cereals.", status: "To Try", tries: 0 },
-      { id: 105, name: "Hazelnut Butter", cat: "Fat", allergen: true, allergenName: "Tree Nut", prep6m: "Smooth 100% hazelnut butter thinned.", prep9m: "Mixed into banana mash.", status: "To Try", tries: 0 },
-      { id: 106, name: "Tahini", cat: "Fat", allergen: true, allergenName: "Sesame", prep6m: "1 tsp smooth tahini mixed in squash or oatmeal.", prep9m: "Mixed into hummus or sauces.", status: "To Try", tries: 0 },
-      { id: 107, name: "Hemp Hearts", cat: "Fat", allergen: false, allergenName: null, prep6m: "Sprinkled on slippery fruit for grip.", prep9m: "Mixed into yogurts and oatmeal.", status: "To Try", tries: 0 },
-      { id: 108, name: "Chia Seeds", cat: "Fat", allergen: false, allergenName: null, prep6m: "Soaked in water or milk into chia pudding.", prep9m: "Chia pudding spoonfuls.", status: "To Try", tries: 0 },
-      { id: 109, name: "Ground Flaxseed", cat: "Fat", allergen: false, allergenName: null, prep6m: "Sprinkled over porridge or rolled on fruit.", prep9m: "Baked into toddler pancakes.", status: "To Try", tries: 0 },
-      { id: 110, name: "Extra Virgin Olive Oil", cat: "Fat", allergen: false, allergenName: null, prep6m: "Drizzled over purees or roasted vegetables.", prep9m: "Drizzled on table foods.", status: "To Try", tries: 0 }
+      { id: 99, name: "Peanut Butter", cat: "Fat", iron: true, allergen: true, allergenName: "Peanut", prep6m: "Smooth peanut butter thinned with warm milk or puree.", prep9m: "Thin smear on toast strip or pancake.", status: "To Try", tries: 0 },
+      { id: 100, name: "Almond Butter", cat: "Fat", iron: true, allergen: true, allergenName: "Tree Nut", prep6m: "Smooth almond butter thinned in oatmeal.", prep9m: "Thin spread on fruit slices.", status: "To Try", tries: 0 },
+      { id: 101, name: "Cashew Butter", cat: "Fat", iron: true, allergen: true, allergenName: "Tree Nut", prep6m: "Smooth cashew butter thinned with warm water.", prep9m: "Blended into vegetable sauces.", status: "To Try", tries: 0 },
+      { id: 102, name: "Walnut Butter", cat: "Fat", iron: true, allergen: true, allergenName: "Tree Nut", prep6m: "Finely ground walnuts or thinned butter.", prep9m: "Sprinkled finely ground over fruit.", status: "To Try", tries: 0 },
+      { id: 103, name: "Pecan Butter", cat: "Fat", iron: true, allergen: true, allergenName: "Tree Nut", prep6m: "Smooth thinned pecan butter in purees.", prep9m: "Thin layer on soft baked goods.", status: "To Try", tries: 0 },
+      { id: 104, name: "Pistachio Butter", cat: "Fat", iron: true, allergen: true, allergenName: "Tree Nut", prep6m: "Smooth thinned pistachio paste.", prep9m: "Mixed into warm cereals.", status: "To Try", tries: 0 },
+      { id: 105, name: "Hazelnut Butter", cat: "Fat", iron: true, allergen: true, allergenName: "Tree Nut", prep6m: "Smooth 100% hazelnut butter thinned.", prep9m: "Mixed into banana mash.", status: "To Try", tries: 0 },
+      { id: 106, name: "Tahini", cat: "Fat", iron: true, allergen: true, allergenName: "Sesame", prep6m: "1 tsp smooth tahini mixed in squash or oatmeal.", prep9m: "Mixed into hummus or sauces.", status: "To Try", tries: 0 },
+      { id: 107, name: "Hemp Hearts", cat: "Fat", iron: true, allergen: false, allergenName: null, prep6m: "Sprinkled on slippery fruit for grip.", prep9m: "Mixed into yogurts and oatmeal.", status: "To Try", tries: 0 },
+      { id: 108, name: "Chia Seeds", cat: "Fat", iron: true, allergen: false, allergenName: null, prep6m: "Soaked in water or milk into chia pudding.", prep9m: "Chia pudding spoonfuls.", status: "To Try", tries: 0 },
+      { id: 109, name: "Ground Flaxseed", cat: "Fat", iron: true, allergen: false, allergenName: null, prep6m: "Sprinkled over porridge or rolled on fruit.", prep9m: "Baked into toddler pancakes.", status: "To Try", tries: 0 },
+      { id: 110, name: "Extra Virgin Olive Oil", cat: "Fat", iron: false, allergen: false, allergenName: null, prep6m: "Drizzled over purees or roasted vegetables.", prep9m: "Drizzled on table foods.", status: "To Try", tries: 0 }
     ];
 
     const allergenProtocols = {
       "Peanut": {
         foodName: "Peanut Butter",
         rationale: "Priority #1 early introduction allergen per pediatric guidelines (LEAP study).",
-        prep: "Never serve thick/chunky peanut butter (choking hazard). Whisk ¼ tsp 100% smooth peanut butter into 1-2 tsp warm breastmilk, formula, or pureed sweet potato until completely smooth and runny.",
+        prep: "Never serve thick/chunky peanut butter (choking hazard). Whisk ¼ tsp 100% smooth peanut butter into 1-2 tsp warm breastmilk, formula, or pureed sweet potato until completely runny.",
         dose: "Day 1: Give ¼ tsp of the mixture on a spoon tip. Wait 15-20 minutes to observe for any immediate reaction (hives, redness, swelling, vomiting). If clear, offer the remaining 1-2 tsp. Continue offering 1-2x/week."
       },
       "Egg": {
@@ -468,8 +555,8 @@
       generateDailySuggestion();
     }
 
-    function toggleSettings() {
-      document.getElementById('settingsModal').classList.toggle('hidden');
+    function toggleModal(id) {
+      document.getElementById(id).classList.toggle('hidden');
     }
 
     function setSyncStatus(synced, message) {
@@ -491,7 +578,7 @@
         localStorage.setItem('fb_api_url', apiUrl);
         setSyncStatus(true, "Syncing...");
         fetchCloudData();
-        toggleSettings();
+        toggleModal('settingsModal');
       }
     }
 
@@ -578,7 +665,6 @@
       const triedFoods = foods.filter(f => f.status === 'Tried' || f.status === 'Staple');
       const allergenOrder = ["Peanut", "Egg", "Cow's Milk", "Wheat", "Soy", "Tree Nut", "Sesame", "Fish", "Shellfish"];
 
-      // Case 1: Early starter phase (< 3 single-ingredient foods tried)
       if (triedFoods.length < 3) {
         const starterFoods = ["Avocado", "Sweet Potato", "Carrot", "Rolled Oats", "Banana"];
         const nextStarter = foods.find(f => starterFoods.includes(f.name) && f.status === 'To Try') || foods.find(f => f.status === 'To Try');
@@ -589,10 +675,10 @@
           reason: "Establish tolerance with 3+ gentle single-ingredient base foods before introducing major allergens.",
           prep: nextStarter.prep6m,
           dose: "Offer 1-2 soft spears or 2-3 spoonfuls of smooth mash. Feed once daily when baby is alert and happy.",
-          allergen: "None"
+          allergen: "None",
+          texture: "Finger Spear (6–8m)"
         };
       } else {
-        // Case 2: Prioritize next untried Top 9 Allergen
         let nextAllergenName = null;
         for (let a of allergenOrder) {
           const isPassed = foods.some(f => f.allergen && f.allergenName === a && (f.status === 'Tried' || f.status === 'Staple'));
@@ -610,10 +696,10 @@
             reason: proto.rationale,
             prep: proto.prep,
             dose: proto.dose,
-            allergen: nextAllergenName
+            allergen: nextAllergenName,
+            texture: "Thick Mash / Puree"
           };
         } else {
-          // Case 3: All 9 allergens introduced -> Pick next untried nutrient-dense food
           const nextUntried = foods.find(f => f.status === 'To Try') || foods[0];
           currentSuggestion = {
             name: nextUntried.name,
@@ -621,12 +707,12 @@
             reason: "All Top 9 allergens have been introduced! Continue building variety toward 110 foods.",
             prep: nextUntried.prep6m,
             dose: "Offer 2-3 pieces alongside a familiar staple food for exposure.",
-            allergen: nextUntried.allergen ? nextUntried.allergenName : "None"
+            allergen: nextUntried.allergen ? nextUntried.allergenName : "None",
+            texture: "Finger Spear (6–8m)"
           };
         }
       }
 
-      // Render to DOM
       document.getElementById('suggestionBadge').innerText = currentSuggestion.badge;
       document.getElementById('suggTitle').innerText = currentSuggestion.name;
       document.getElementById('suggReason').innerText = currentSuggestion.reason;
@@ -636,11 +722,15 @@
 
     function prefillFromSuggestion() {
       if (!currentSuggestion) return;
+      quickLogFood(currentSuggestion.name, currentSuggestion.allergen, currentSuggestion.texture);
+    }
+
+    function quickLogFood(foodName, allergenName, texture) {
       switchTab('logTab');
-      document.getElementById('logFood').value = currentSuggestion.name;
-      document.getElementById('logAllergen').value = currentSuggestion.allergen || 'None';
-      document.getElementById('logNotes').value = `Suggested intro: ${currentSuggestion.badge}`;
-      window.scrollTo({ top: 100, behavior: 'smooth' });
+      document.getElementById('logFood').value = foodName;
+      document.getElementById('logAllergen').value = allergenName || 'None';
+      if (texture) document.getElementById('logTexture').value = texture;
+      window.scrollTo({ top: 120, behavior: 'smooth' });
     }
 
     function cycleFoodStatus(id) {
@@ -679,6 +769,8 @@
         let matchesCat = true;
         if (catFilter === 'TopAllergen') {
           matchesCat = f.allergen === true;
+        } else if (catFilter === 'IronZinc') {
+          matchesCat = f.iron === true;
         } else if (catFilter !== 'All') {
           matchesCat = f.cat === catFilter;
         }
@@ -700,12 +792,13 @@
       grid.innerHTML = filtered.map(f => `
         <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-3">
           <div>
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+            <div class="flex items-center justify-between gap-1">
+              <span class="text-xs font-bold text-slate-900 flex items-center gap-1.5 flex-wrap">
                 ${f.name}
-                ${f.allergen ? `<span class="bg-amber-100 text-amber-800 text-[9px] font-semibold px-1.5 py-0.5 rounded-md">⚠️ ${f.allergenName}</span>` : ''}
+                ${f.iron ? `<span class="bg-rose-100 text-rose-800 text-[9px] font-bold px-1.5 py-0.5 rounded">🥩 Iron</span>` : ''}
+                ${f.allergen ? `<span class="bg-amber-100 text-amber-800 text-[9px] font-semibold px-1.5 py-0.5 rounded">⚠️ ${f.allergenName}</span>` : ''}
               </span>
-              <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+              <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${
                 f.status === 'Staple' ? 'bg-emerald-100 text-emerald-800' :
                 f.status === 'Tried' ? 'bg-blue-100 text-blue-800' : 'bg-slate-100 text-slate-600'
               }">${f.status} (${f.tries}x)</span>
@@ -717,10 +810,15 @@
               <p><strong class="text-slate-800">Stage 2 (9–12m):</strong> ${f.prep9m}</p>
             </div>
           </div>
-          <button onclick="cycleFoodStatus(${f.id})" class="w-full py-1.5 text-xs font-semibold rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-700 transition-colors flex items-center justify-center gap-1">
-            <span>Tap to Advance:</span>
-            <span class="text-emerald-700 font-bold">${f.status === 'To Try' ? 'Mark Tried (1x)' : f.status === 'Tried' ? (f.tries >= 4 ? 'Mark Staple (5x)' : `Add Exposure (${f.tries + 1}x)`) : 'Reset to To Try'}</span>
-          </button>
+          
+          <div class="grid grid-cols-2 gap-2 pt-1">
+            <button onclick="quickLogFood('${f.name.replace(/'/g, "\\'")}', '${f.allergen ? f.allergenName : 'None'}', 'Finger Spear (6–8m)')" class="py-1.5 text-[11px] font-bold rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 transition-colors flex items-center justify-center gap-1">
+              <span>➕ Log Meal</span>
+            </button>
+            <button onclick="cycleFoodStatus(${f.id})" class="py-1.5 text-[11px] font-semibold rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-700 transition-colors text-center">
+              ${f.status === 'To Try' ? 'Mark Tried (1x)' : f.status === 'Tried' ? (f.tries >= 4 ? 'Mark Staple (5x)' : `+1 Exp (${f.tries + 1}x)`) : 'Reset'}
+            </button>
+          </div>
         </div>
       `).join('');
     }
@@ -738,6 +836,7 @@
         reaction: document.getElementById('logReaction').value,
         allergen: document.getElementById('logAllergen').value,
         milk: document.getElementById('logMilk').value || '0',
+        water: document.getElementById('logWater').value || '0',
         notes: document.getElementById('logNotes').value || '-'
       };
 
@@ -746,10 +845,12 @@
 
       document.getElementById('logFood').value = '';
       document.getElementById('logEaten').value = '';
+      document.getElementById('logWater').value = '';
       document.getElementById('logNotes').value = '';
 
       updateStats();
       renderMeals();
+      renderAllergens();
       generateDailySuggestion();
       postMealToCloud(newMeal);
     }
@@ -759,6 +860,7 @@
       localStorage.setItem('fb_meals_v3', JSON.stringify(meals));
       updateStats();
       renderMeals();
+      renderAllergens();
       generateDailySuggestion();
     }
 
@@ -772,17 +874,18 @@
       container.innerHTML = meals.map(m => `
         <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm flex items-start justify-between gap-3">
           <div class="space-y-1">
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 flex-wrap">
               <span class="text-xs font-bold text-slate-800">${m.mealType}</span>
               <span class="text-[11px] text-slate-400">${m.date} at ${m.time}</span>
-              ${m.allergen !== 'None' ? `<span class="bg-amber-100 text-amber-800 text-[10px] font-semibold px-2 py-0.5 rounded-full">Allergen: ${m.allergen}</span>` : ''}
+              ${m.allergen && m.allergen !== 'None' ? `<span class="bg-amber-100 text-amber-800 text-[10px] font-semibold px-2 py-0.5 rounded-full">Allergen: ${m.allergen}</span>` : ''}
             </div>
             <div class="text-xs font-medium text-slate-900">${m.food}</div>
             <div class="text-[11px] text-slate-500 flex flex-wrap gap-x-3 gap-y-1">
               <span><strong>Cut:</strong> ${m.texture}</span>
               <span><strong>Eaten:</strong> ${m.eaten}</span>
               <span><strong>Reaction:</strong> ${m.reaction}</span>
-              ${m.milk !== '0' ? `<span><strong>Milk:</strong> ${m.milk} oz</span>` : ''}
+              ${m.milk !== '0' && m.milk ? `<span><strong>Milk:</strong> ${m.milk} oz</span>` : ''}
+              ${m.water !== '0' && m.water ? `<span><strong>Water:</strong> ${m.water}</span>` : ''}
             </div>
             ${m.notes !== '-' ? `<p class="text-[11px] text-slate-600 bg-slate-50 p-1.5 rounded border border-slate-100 italic mt-1">"${m.notes}"</p>` : ''}
           </div>
@@ -804,44 +907,114 @@
         { name: "Sesame", form: "Smooth tahini paste mixed into oatmeal/squash", keyFoods: "Tahini (Sesame Paste)" }
       ];
 
+      const today = new Date();
       const container = document.getElementById('allergenList');
+
       container.innerHTML = allergenOrder.map(a => {
         const matchingFoods = foods.filter(f => f.allergen && f.allergenName === a.name);
         const totalExposures = matchingFoods.reduce((acc, curr) => acc + curr.tries, 0);
         const isPassed = totalExposures > 0;
 
+        // Calculate Cadence from meals
+        const allergenMeals = meals.filter(m => m.allergen === a.name);
+        let cadenceBadge = '';
+        
+        if (!isPassed && allergenMeals.length === 0) {
+          cadenceBadge = `<span class="bg-amber-100 text-amber-800 text-[10px] font-semibold px-2 py-0.5 rounded-full">Pending Introduction</span>`;
+        } else if (allergenMeals.length > 0) {
+          const latestDate = new Date(allergenMeals[0].date);
+          const diffDays = Math.floor((today - latestDate) / (1000 * 60 * 60 * 24));
+          
+          if (diffDays <= 7) {
+            cadenceBadge = `<span class="bg-emerald-100 text-emerald-800 text-[10px] font-semibold px-2 py-0.5 rounded-full">✅ Active (Fed ${diffDays === 0 ? 'Today' : diffDays + 'd ago'})</span>`;
+          } else {
+            cadenceBadge = `<span class="bg-rose-100 text-rose-800 text-[10px] font-bold px-2 py-0.5 rounded-full">⚠️ Due This Week (Fed ${diffDays}d ago)</span>`;
+          }
+        } else {
+          cadenceBadge = `<span class="bg-emerald-100 text-emerald-800 text-[10px] font-semibold px-2 py-0.5 rounded-full">✅ Introduced (Log pending)</span>`;
+        }
+
         return `
-          <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm flex items-start justify-between">
+          <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div class="space-y-1">
-              <div class="flex items-center gap-2">
+              <div class="flex items-center gap-2 flex-wrap">
                 <span class="text-xs font-bold text-slate-900">${a.name}</span>
-                <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full ${isPassed ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
-                  ${isPassed ? 'Introduced / Passed' : 'Pending Introduction'}
-                </span>
+                ${cadenceBadge}
               </div>
-              <p class="text-[11px] text-slate-500"><strong>Safe Prep:</strong> ${a.form}</p>
-              <p class="text-[11px] text-slate-400"><strong>Tracked Foods:</strong> ${a.keyFoods}</p>
+              <p class="text-[11px] text-slate-600"><strong>Safe Prep:</strong> ${a.form}</p>
+              <p class="text-[11px] text-slate-400"><strong>Foods:</strong> ${a.keyFoods}</p>
             </div>
-            <div class="text-right">
-              <span class="text-sm font-bold text-slate-700">${totalExposures}x</span>
-              <p class="text-[10px] text-slate-400">Exposures</p>
+            <div class="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center border-t sm:border-t-0 pt-2 sm:pt-0">
+              <span class="text-xs font-bold text-slate-700">${totalExposures}x Exposures</span>
+              <button onclick="quickLogFood('${a.name}', '${a.name}', 'Thick Mash / Puree')" class="text-[11px] font-bold text-emerald-700 hover:text-emerald-800 mt-1">
+                + Log Exposure
+              </button>
             </div>
           </div>
         `;
       }).join('');
     }
 
+    function openDoctorSummary() {
+      const triedFoods = foods.filter(f => f.status === 'Tried' || f.status === 'Staple');
+      const allergenOrder = ["Peanut", "Egg", "Cow's Milk", "Wheat", "Soy", "Tree Nut", "Sesame", "Fish", "Shellfish"];
+      const passedAllergens = allergenOrder.filter(a => foods.some(f => f.allergen && f.allergenName === a && (f.status === 'Tried' || f.status === 'Staple')));
+      const reactionMeals = meals.filter(m => m.reaction === 'Gagged' || m.reaction === 'Refused' || m.notes !== '-');
+
+      const html = `
+        <div class="grid grid-cols-3 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-200 text-center">
+          <div><span class="text-base font-bold text-emerald-700">${triedFoods.length} / 110</span><p class="text-[10px] text-slate-500">Foods Tried</p></div>
+          <div><span class="text-base font-bold text-amber-700">${passedAllergens.length} / 9</span><p class="text-[10px] text-slate-500">Allergens Passed</p></div>
+          <div><span class="text-base font-bold text-indigo-700">${meals.length}</span><p class="text-[10px] text-slate-500">Feeding Sessions</p></div>
+        </div>
+
+        <div>
+          <h4 class="font-bold text-slate-900 mb-1">Top 9 Allergen Status</h4>
+          <div class="grid grid-cols-3 gap-1.5 text-[11px]">
+            ${allergenOrder.map(a => {
+              const passed = passedAllergens.includes(a);
+              return `<div class="p-1.5 rounded border ${passed ? 'bg-emerald-50 border-emerald-200 text-emerald-900 font-semibold' : 'bg-slate-50 border-slate-200 text-slate-400'}">${passed ? '✅' : '⏳'} ${a}</div>`;
+            }).join('')}
+          </div>
+        </div>
+
+        <div>
+          <h4 class="font-bold text-slate-900 mb-1">Foods Introduced by Category</h4>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
+            ${['Veggie', 'Fruit', 'Protein', 'Grain'].map(cat => {
+              const count = triedFoods.filter(f => f.cat === cat).length;
+              return `<div class="bg-slate-50 p-2 rounded-lg border border-slate-200"><strong class="text-slate-800">${cat}:</strong> ${count} tried</div>`;
+            }).join('')}
+          </div>
+        </div>
+
+        <div>
+          <h4 class="font-bold text-slate-900 mb-1">Notable Feeding Observations & Reactions</h4>
+          <div class="space-y-1.5 max-h-40 overflow-y-auto pr-1">
+            ${reactionMeals.length === 0 ? '<p class="text-slate-400 italic">No adverse reactions or special notes logged.</p>' : reactionMeals.slice(0, 8).map(m => `
+              <div class="bg-slate-50 p-2 rounded border border-slate-100 text-[11px]">
+                <strong>${m.date} (${m.food}):</strong> ${m.reaction} ${m.notes !== '-' ? `— "${m.notes}"` : ''}
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+
+      document.getElementById('summaryContent').innerHTML = html;
+      toggleModal('drSummaryModal');
+    }
+
     function exportToCSV() {
       let csv = "--- FIRSTBITES 110 FOODS STATUS ---\n";
-      csv += "ID,Category,Food Name,Top Allergen,Allergen Type,Status,Exposures,Stage 1 Prep (6-8m),Stage 2 Prep (9-12m)\n";
+      csv += "ID,Category,Food Name,Iron-Rich,Top Allergen,Allergen Type,Status,Exposures,Stage 1 Prep (6-8m),Stage 2 Prep (9-12m)\n";
       foods.forEach(f => {
-        csv += `${f.id},"${f.cat}","${f.name}","${f.allergen ? 'Yes' : 'No'}","${f.allergenName || 'None'}","${f.status}",${f.tries},"${f.prep6m.replace(/"/g, '""')}","${f.prep9m.replace(/"/g, '""')}"\n`;
+        csv += `${f.id},"${f.cat}","${f.name}","${f.iron ? 'Yes' : 'No'}","${f.allergen ? 'Yes' : 'No'}","${f.allergenName || 'None'}","${f.status}",${f.tries},"${f.prep6m.replace(/"/g, '""')}","${f.prep9m.replace(/"/g, '""')}"\n`;
       });
 
       csv += "\n--- DAILY FEEDING LOGS ---\n";
-      csv += "Date,Time,Meal Type,Texture,Food Item(s),Amount Eaten,Reaction,Allergen,Milk (oz),Notes\n";
+      csv += "Date,Time,Meal Type,Texture,Food Item(s),Amount Eaten,Reaction,Allergen,Milk (oz),Water / Cup,Notes\n";
       meals.forEach(m => {
-        csv += `"${m.date}","${m.time}","${m.mealType}","${m.texture}","${m.food.replace(/"/g, '""')}","${m.eaten}","${m.reaction}","${m.allergen}","${m.milk}","${m.notes.replace(/"/g, '""')}"\n`;
+        csv += `"${m.date}","${m.time}","${m.mealType}","${m.texture}","${m.food.replace(/"/g, '""')}","${m.eaten}","${m.reaction}","${m.allergen}","${m.milk || 0}","${m.water || 0}","${m.notes.replace(/"/g, '""')}"\n`;
       });
 
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
