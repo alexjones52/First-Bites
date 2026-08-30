@@ -947,7 +947,7 @@
       }
     }
 
-    // ================= AI ASSISTANT ENGINE (WITH ERROR INSPECTION) =================
+    // ================= RESILIENT AUTO-RESOLVING AI ENGINE =================
     async function queryAI(userPrompt) {
       const box = document.getElementById('aiResponseBox');
       const submitBtn = document.getElementById('aiSubmitBtn');
@@ -971,38 +971,48 @@ Format your response directly with concise, practical bullet points and bold sec
 
       let lastError = null;
 
-      // 1. Try Live Google Gemini REST API if key is present
       if (geminiKey) {
-        try {
-          const directRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              contents: [{ role: "user", parts: [{ text: fullPrompt }] }]
-            })
-          });
+        // Multi-endpoint resolver to avoid 404 version/model mismatches
+        const endpoints = [
+          `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${geminiKey}`,
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`,
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${geminiKey}`,
+          `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent?key=${geminiKey}`,
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`
+        ];
 
-          const json = await directRes.json();
-          if (json.candidates && json.candidates[0]?.content?.parts?.[0]?.text) {
-            box.innerHTML = formatAiMarkdown(json.candidates[0].content.parts[0].text);
-            submitBtn.disabled = false;
-            submitBtn.innerText = "Ask AI";
-            return;
-          } else {
-            lastError = json.error?.message || `Google returned status ${directRes.status}: ${JSON.stringify(json)}`;
+        for (let endpoint of endpoints) {
+          try {
+            const directRes = await fetch(endpoint, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                contents: [{ role: "user", parts: [{ text: fullPrompt }] }]
+              })
+            });
+
+            const json = await directRes.json();
+            if (json.candidates && json.candidates[0]?.content?.parts?.[0]?.text) {
+              box.innerHTML = formatAiMarkdown(json.candidates[0].content.parts[0].text);
+              submitBtn.disabled = false;
+              submitBtn.innerText = "Ask AI";
+              return;
+            } else if (json.error) {
+              lastError = json.error.message;
+            }
+          } catch (e) {
+            lastError = e.message;
           }
-        } catch (e) {
-          lastError = e.message;
         }
       }
 
-      // 2. Fallback to guided rule engine and print Google's exact error if one occurred
+      // Offline instant rule engine fallback
       const offlineGuidance = generateInstantFeedingGuidance(userPrompt, triedFoods, passedAllergens);
       box.innerHTML = `
         <div class="space-y-3">
           ${lastError ? `
-            <div class="bg-rose-50 border border-rose-200 rounded-lg p-2.5 text-[11px] text-rose-800">
-              <strong>Google API Key Note:</strong> ${lastError}
+            <div class="bg-amber-50 border border-amber-200 rounded-lg p-2.5 text-[11px] text-amber-900">
+              <strong>Google Key Note:</strong> ${lastError}
             </div>
           ` : ''}
           <div class="bg-white p-3 rounded-lg border border-purple-100 space-y-1">
