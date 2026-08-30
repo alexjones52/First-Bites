@@ -218,11 +218,14 @@
       </div>
     </section>
 
-    <!-- Navigation Tabs -->
-    <nav class="flex rounded-xl bg-slate-200/80 p-1 text-xs font-semibold">
-      <button onclick="switchTab('foodsTab')" id="tabBtn-foodsTab" class="flex-1 py-2 text-center rounded-lg bg-white text-slate-900 shadow-sm transition-all">110 Foods Database</button>
-      <button onclick="switchTab('logTab')" id="tabBtn-logTab" class="flex-1 py-2 text-center rounded-lg text-slate-600 hover:text-slate-900 transition-all">Daily Meal Log</button>
-      <button onclick="switchTab('allergensTab')" id="tabBtn-allergensTab" class="flex-1 py-2 text-center rounded-lg text-slate-600 hover:text-slate-900 transition-all">Top 9 Allergens & Cadence</button>
+    <!-- Navigation Tabs (4 Responsive Tabs) -->
+    <nav class="grid grid-cols-2 sm:grid-cols-4 gap-1 rounded-xl bg-slate-200/80 p-1 text-xs font-semibold">
+      <button onclick="switchTab('foodsTab')" id="tabBtn-foodsTab" class="py-2 text-center rounded-lg bg-white text-slate-900 shadow-sm transition-all">110 Foods</button>
+      <button onclick="switchTab('logTab')" id="tabBtn-logTab" class="py-2 text-center rounded-lg text-slate-600 hover:text-slate-900 transition-all">Meal Log</button>
+      <button onclick="switchTab('allergensTab')" id="tabBtn-allergensTab" class="py-2 text-center rounded-lg text-slate-600 hover:text-slate-900 transition-all">Allergens</button>
+      <button onclick="switchTab('roadmapTab')" id="tabBtn-roadmapTab" class="py-2 text-center rounded-lg text-slate-600 hover:text-slate-900 transition-all flex items-center justify-center gap-1">
+        <span>🗺️</span> 7–18m Plan
+      </button>
     </nav>
 
     <!-- TAB 1: 110 FOODS DATABASE -->
@@ -371,6 +374,179 @@
       </div>
 
       <div id="allergenList" class="space-y-3"></div>
+    </section>
+
+    <!-- TAB 4: 7 TO 18 MONTH DEVELOPMENTAL ROADMAP -->
+    <section id="roadmapTab" class="hidden space-y-4">
+      
+      <!-- Overview Table Card -->
+      <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm space-y-3">
+        <div class="flex items-center justify-between">
+          <h3 class="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
+            <span>🗺️</span> Master Feeding & Milestone Roadmap
+          </h3>
+          <span class="text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">7m $\rightarrow$ 18m</span>
+        </div>
+        <p class="text-xs text-slate-600 leading-relaxed">
+          From first tastes to family table foods. Use this guide to time meal additions, texture progressions, and the 1-year milk transition.
+        </p>
+
+        <!-- Scannable Matrix -->
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr class="bg-slate-100/80 text-slate-700 text-[11px] border-b border-slate-200">
+                <th class="p-2 font-bold">Age</th>
+                <th class="p-2 font-bold">Meals / Day</th>
+                <th class="p-2 font-bold">Texture Focus</th>
+                <th class="p-2 font-bold">Daily Milk</th>
+                <th class="p-2 font-bold">Daily Water</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 text-[11px] text-slate-600">
+              <tr class="hover:bg-slate-50/50">
+                <td class="p-2 font-bold text-emerald-800">7–8m</td>
+                <td class="p-2">1–2 meals</td>
+                <td class="p-2">Finger spears & resistive foods</td>
+                <td class="p-2">24–32 oz</td>
+                <td class="p-2">2–4 oz (cup)</td>
+              </tr>
+              <tr class="hover:bg-slate-50/50">
+                <td class="p-2 font-bold text-emerald-800">9–11m</td>
+                <td class="p-2">3 meals + 1 snack</td>
+                <td class="p-2">½" bite cubes & pincer shreds</td>
+                <td class="p-2">20–28 oz</td>
+                <td class="p-2">4–6 oz</td>
+              </tr>
+              <tr class="hover:bg-slate-50/50">
+                <td class="p-2 font-bold text-emerald-800">12–14m</td>
+                <td class="p-2">3 meals + 2 snacks</td>
+                <td class="p-2">Family table foods</td>
+                <td class="p-2">14–16 oz (Whole milk)</td>
+                <td class="p-2">8–16 oz</td>
+              </tr>
+              <tr class="hover:bg-slate-50/50">
+                <td class="p-2 font-bold text-emerald-800">15–18m</td>
+                <td class="p-2">3 meals + 2 snacks</td>
+                <td class="p-2">Full adult textures (cut safe)</td>
+                <td class="p-2">12–16 oz max</td>
+                <td class="p-2">With all meals</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- PHASE 1 CARD -->
+      <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm space-y-3">
+        <div class="flex items-center justify-between border-b pb-2.5">
+          <div>
+            <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">Phase 1</span>
+            <h4 class="text-sm font-bold text-slate-900 mt-1">7 to 8 Months: Skill Building & Allergen Clearance</h4>
+          </div>
+          <span class="text-xs font-bold text-slate-500">1–2 Meals/Day</span>
+        </div>
+
+        <div class="space-y-2 text-xs text-slate-600">
+          <p><strong>Primary Goal:</strong> Oral motor mapping (tongue lateralization) and introducing all Top 9 allergens.</p>
+          
+          <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 space-y-1.5 text-[11px]">
+            <p class="font-bold text-slate-800">🗓️ Week-by-Week Action Plan:</p>
+            <ul class="list-disc pl-4 space-y-1">
+              <li><strong>7m W1:</strong> 1 meal/day. Iron-rich base foods + Peanut protocol (thinned butter in puree).</li>
+              <li><strong>7m W2:</strong> Scrambled egg strips + steamed vegetable spears (sweet potato, zucchini).</li>
+              <li><strong>7m W3:</strong> Move to <strong>2 meals/day</strong> (Breakfast + Dinner). Introduce whole-milk Greek yogurt.</li>
+              <li><strong>7m W4:</strong> Introduce Whole Wheat (toast crust strip) + Lentils / Beef crumbles.</li>
+              <li><strong>8m W1–2:</strong> Tree nut butters & Tofu strips. Practice resistive chewing (clean mango pit).</li>
+              <li><strong>8m W3–4:</strong> Flaked wild salmon & Sesame tahini. Establish 1–2x/week maintenance cadence.</li>
+            </ul>
+          </div>
+
+          <div class="bg-emerald-50/60 p-3 rounded-xl border border-emerald-100 text-[11px] text-emerald-900">
+            <strong>⏰ Ideal Daily Flow:</strong> 7:00 AM Milk (7 oz) $\rightarrow$ 8:00 AM Breakfast $\rightarrow$ 11:30 AM Milk $\rightarrow$ Nap $\rightarrow$ 2:30 PM Milk $\rightarrow$ 5:30 PM Dinner $\rightarrow$ 6:30 PM Milk $\rightarrow$ Bedtime.
+          </div>
+        </div>
+      </div>
+
+      <!-- PHASE 2 CARD -->
+      <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm space-y-3">
+        <div class="flex items-center justify-between border-b pb-2.5">
+          <div>
+            <span class="text-[10px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded">Phase 2</span>
+            <h4 class="text-sm font-bold text-slate-900 mt-1">9 to 11 Months: The Pincer Grasp & Table Foods</h4>
+          </div>
+          <span class="text-xs font-bold text-slate-500">3 Meals + 1 Snack</span>
+        </div>
+
+        <div class="space-y-2 text-xs text-slate-600">
+          <p><strong>Primary Goal:</strong> Transition from palmar palm-raking to thumb-index finger pincer grasp. Move to 3 full meals.</p>
+          
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
+            <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+              <strong class="text-slate-800">✂️ Texture Shift:</strong>
+              <p class="mt-0.5">Switch from long spears to <strong>½-inch soft cubes</strong> (steamed carrot coins, ripe banana dices, shredded soft chicken).</p>
+            </div>
+            <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+              <strong class="text-slate-800">🥄 Utensil Practice:</strong>
+              <p class="mt-0.5">Offer short, thick silicone spoons pre-loaded with yogurt or mash for baby to self-navigate.</p>
+            </div>
+          </div>
+
+          <div class="bg-blue-50/60 p-3 rounded-xl border border-blue-100 text-[11px] text-blue-900">
+            <strong>⏰ Daily Routine:</strong> 3 solid meals (Breakfast 8 AM, Lunch 11:30 AM, Dinner 5:30 PM) + 4 milk feeds (20–28 oz total) + open cup water practice at meals.
+          </div>
+        </div>
+      </div>
+
+      <!-- PHASE 3 CARD -->
+      <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm space-y-3">
+        <div class="flex items-center justify-between border-b pb-2.5">
+          <div>
+            <span class="text-[10px] font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded">Phase 3</span>
+            <h4 class="text-sm font-bold text-slate-900 mt-1">12 to 14 Months: The 1-Year Milk & Cup Shift</h4>
+          </div>
+          <span class="text-xs font-bold text-slate-500">3 Meals + 2 Snacks</span>
+        </div>
+
+        <div class="space-y-2 text-xs text-slate-600">
+          <p><strong>Primary Goal:</strong> Solids become primary nutrition. Drop bottles and switch to open/straw cups.</p>
+          
+          <ul class="list-disc pl-4 space-y-1 text-[11px]">
+            <li><strong>Cap Whole Milk at 16 oz/day:</strong> Drinking more than 16–20 oz of cow's milk can cause milk-induced iron deficiency anemia.</li>
+            <li><strong>Drop Baby Bottles:</strong> Transition all milk and water into open or weighted straw cups.</li>
+            <li><strong>Adopt 3+2 Cadence:</strong> Breakfast (7:30), Snack (10:00), Lunch (12:30), Snack (3:30), Dinner (6:00).</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- PHASE 4 & SAFETY CARD -->
+      <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm space-y-3">
+        <div class="flex items-center justify-between border-b pb-2.5">
+          <div>
+            <span class="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded">Phase 4 & Safety</span>
+            <h4 class="text-sm font-bold text-slate-900 mt-1">15 to 18 Months: Toddler Table & Choking Guardrails</h4>
+          </div>
+          <span class="text-xs font-bold text-slate-500">100% Family Food</span>
+        </div>
+
+        <div class="space-y-2.5 text-xs text-slate-600">
+          <p><strong>Division of Responsibility:</strong> You decide <em>what, when, and where</em> to serve; your toddler decides <em>whether and how much</em> to eat.</p>
+
+          <div class="bg-rose-50/80 p-3 rounded-xl border border-rose-200 space-y-1 text-[11px] text-rose-900">
+            <p class="font-bold flex items-center gap-1 text-xs">
+              <span>🛑</span> Mandatory Choking Modifications Until Age 4:
+            </p>
+            <ul class="list-disc pl-4 space-y-0.5 text-slate-700">
+              <li><strong>Grapes & Cherry Tomatoes:</strong> Quarter lengthwise (never round discs).</li>
+              <li><strong>Hot Dogs / Sausages:</strong> Slice lengthwise into quarters, then dice.</li>
+              <li><strong>Whole Nuts & Sticky Nut Butter:</strong> Keep finely ground or thinned into purees.</li>
+              <li><strong>Raw Apples & Carrots:</strong> Steam soft, grate finely, or bake.</li>
+              <li><strong>Popcorn & Hard Candies:</strong> Strictly avoid.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
     </section>
 
   </main>
@@ -690,12 +866,18 @@
     }
 
     function switchTab(tabId) {
-      ['foodsTab', 'logTab', 'allergensTab'].forEach(t => {
-        document.getElementById(t).classList.add('hidden');
-        document.getElementById('tabBtn-' + t).className = "flex-1 py-2 text-center rounded-lg text-slate-600 hover:text-slate-900 transition-all";
+      const tabs = ['foodsTab', 'logTab', 'allergensTab', 'roadmapTab'];
+      tabs.forEach(t => {
+        const section = document.getElementById(t);
+        const btn = document.getElementById('tabBtn-' + t);
+        if (section) section.classList.add('hidden');
+        if (btn) btn.className = "py-2 text-center rounded-lg text-slate-600 hover:text-slate-900 transition-all flex items-center justify-center gap-1";
       });
-      document.getElementById(tabId).classList.remove('hidden');
-      document.getElementById('tabBtn-' + tabId).className = "flex-1 py-2 text-center rounded-lg bg-white text-slate-900 shadow-sm transition-all";
+
+      const activeSection = document.getElementById(tabId);
+      const activeBtn = document.getElementById('tabBtn-' + tabId);
+      if (activeSection) activeSection.classList.remove('hidden');
+      if (activeBtn) activeBtn.className = "py-2 text-center rounded-lg bg-white text-slate-900 shadow-sm transition-all flex items-center justify-center gap-1";
     }
 
     function updateStats() {
